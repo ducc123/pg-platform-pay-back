@@ -23,7 +23,7 @@ class PayApprovalTests {
         PaymentServiceGrpc.PaymentServiceBlockingStub pays = PaymentServiceGrpc.newBlockingStub(channel);
 
         pays.paymentCall(PaymentRequest.newBuilder()
-                .setTranSeq("2021071516481500006744")
+                .setTranSeq("2021071517401600006746")
                 .setApprType("Order")
                 .setCertiType("a")
                 .setAuthty("2")

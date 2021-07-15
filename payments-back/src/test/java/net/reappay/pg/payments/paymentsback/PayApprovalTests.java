@@ -76,6 +76,7 @@ class PayApprovalTests {
         );
 
         channel.shutdown();
+
     }
 
 }

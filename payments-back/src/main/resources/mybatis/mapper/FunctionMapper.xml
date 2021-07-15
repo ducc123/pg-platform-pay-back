@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.reappay.pg.payments.paymentsback.dao.MybatisDao">
+
+    <select id="findPgMerchNoUserId" parameterType="string" resultType="string">
+        select  pg_merch_no
+        FROM    tb_user
+        WHERE   user_id = #{userId}
+    </select>
+
+    <select id="findPgTidUserId" parameterType="string" resultType="string">
+        select  pg_tid
+        FROM    tb_user
+        WHERE   user_id = #{userId}
+    </select>
+
+    <!-- 거래번호 생성 -->
+    <select id="getTranSeq" resultType="string">
+        SELECT CONCAT(DATE_FORMAT(NOW(),'%Y%m%d%H%i%S'), SUBSTR(CONCAT('00000000', F_GET_SEQUENCE('TRANSEQ')),-8))
+    </select>
+
+    <!-- 거래번호 생성 -->
+    <select id="getOrderId" resultType="string">
+        SELECT CONCAT(DATE_FORMAT(NOW(),'%Y%m%d%H%i%S'), SUBSTR(CONCAT('00000000', F_GET_SEQUENCE('ORDER_NO')),-8))
+    </select>
+
+</mapper>

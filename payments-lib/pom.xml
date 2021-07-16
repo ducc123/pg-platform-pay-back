@@ -18,22 +18,17 @@
         <net.devh.grpc.version>2.12.0.RELEASE</net.devh.grpc.version>
     </properties>
     <dependencies>
+
         <dependency>
-            <groupId>net.devh</groupId>
+            <groupId>io.github.lognet</groupId>
             <artifactId>grpc-spring-boot-starter</artifactId>
-            <version>${net.devh.grpc.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>io.grpc</groupId>
-                    <artifactId>grpc-netty-shaded</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>4.5.5</version>
         </dependency>
 
         <dependency>
-            <groupId>net.devh</groupId>
-            <artifactId>grpc-client-spring-boot-autoconfigure</artifactId>
-            <version>${net.devh.grpc.version}</version>
+            <groupId>io.github.lognet</groupId>
+            <artifactId>grpc-client-spring-boot-starter</artifactId>
+            <version>4.5.5</version>
         </dependency>
 
         <dependency>

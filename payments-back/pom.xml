@@ -48,7 +48,7 @@
         <dependency>
             <groupId>net.reappay.pg.payments</groupId>
             <artifactId>payments-lib</artifactId>
-            <version>0.0.2-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

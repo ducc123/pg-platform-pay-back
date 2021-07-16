@@ -18,7 +18,7 @@ class PayOrderTests {
                 .usePlaintext()
                 .build();
 
-        OrderServiceGrpc.OrderServiceBlockingStub orders = OrderServiceGrpc.newBlockingStub(channel);
+/*        OrderServiceGrpc.OrderServiceBlockingStub orders = OrderServiceGrpc.newBlockingStub(channel);
 
         Random rnd = new Random();
         String randomStr = String.valueOf(rnd.nextInt(10000000));
@@ -44,7 +44,7 @@ class PayOrderTests {
                 .setSuccessUrl("http://naver.com")
                 .setFailtureUrl("http://naver.com")
                 .build()
-        );
+        );*/
 
         channel.shutdown();
     }

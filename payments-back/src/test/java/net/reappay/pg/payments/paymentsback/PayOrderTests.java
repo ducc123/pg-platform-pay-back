@@ -30,7 +30,6 @@ class PayOrderTests {
                 .setCustName("주문자")
                 .setCustEmail("test@test.com")
                 .setCustPhone("01022221111")
-                .setOrderName("주문자명")
                 .setGoodsName("상품명%^%^&&!~~")
                 .setGoodsCode("123456")
                 .setProductType("1")

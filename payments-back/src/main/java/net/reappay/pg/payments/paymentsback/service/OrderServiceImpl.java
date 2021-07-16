@@ -10,16 +10,11 @@ import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.modelmapper.ModelMapper;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.HttpServletRequest;
 import java.net.Inet4Address;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Optional;
 
 @Slf4j
 @GrpcService
@@ -28,7 +23,7 @@ import java.util.Optional;
 public class OrderServiceImpl extends OrderServiceGrpc.OrderServiceImplBase {
 
     @Autowired
-    private final MybatisService mybatisService;
+    private final MybatisServiceImpl mybatisServiceImpl;
 
     @Override
     public void orderCall(OrderRequest request, StreamObserver<OrderResponse> responseObserver) {
@@ -38,7 +33,7 @@ public class OrderServiceImpl extends OrderServiceGrpc.OrderServiceImplBase {
         OrderDto orderDto       = modelMapper.map(request, OrderDto.class);
         
         //transeq 생성해서 저장
-        String tranSeq = mybatisService.getTranSeq();
+        String tranSeq = mybatisServiceImpl.getTranSeq();
         orderDto.setTranSeq(tranSeq);
         
         //주문일 주문시간설정
@@ -57,8 +52,8 @@ public class OrderServiceImpl extends OrderServiceGrpc.OrderServiceImplBase {
 
 
         try {
-            PgMerchNo           = mybatisService.findPgMerchNoUserId(request.getCustId());
-            PgTid               = mybatisService.findPgTidUserId(request.getCustId());
+            PgMerchNo           = mybatisServiceImpl.findPgMerchNoUserId(request.getCustId());
+            PgTid               = mybatisServiceImpl.findPgTidUserId(request.getCustId());
 
         } catch (NullPointerException e) {
             e.printStackTrace();
@@ -76,7 +71,7 @@ public class OrderServiceImpl extends OrderServiceGrpc.OrderServiceImplBase {
         orderDto.setCustIp(cip);
 
         //가맹점 주문정보 tb_approval 저장
-        mybatisService.addOrder(orderDto);
+        mybatisServiceImpl.addOrder(orderDto);
 
         //기본 response처리
         OrderResponse response  = OrderResponse.newBuilder().build();
@@ -84,8 +79,8 @@ public class OrderServiceImpl extends OrderServiceGrpc.OrderServiceImplBase {
         responseObserver.onCompleted();
     }
 
-    public OrderServiceImpl(MybatisService mybatisService) {
-        this.mybatisService = mybatisService;
+    public OrderServiceImpl(MybatisServiceImpl mybatisServiceImpl) {
+        this.mybatisServiceImpl = mybatisServiceImpl;
     }
 
 

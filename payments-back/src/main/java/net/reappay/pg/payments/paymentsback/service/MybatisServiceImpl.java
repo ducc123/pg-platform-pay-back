@@ -2,13 +2,14 @@ package net.reappay.pg.payments.paymentsback.service;
 
 import lombok.RequiredArgsConstructor;
 import net.reappay.pg.payments.paymentsback.dao.MybatisDao;
+import net.reappay.pg.payments.paymentsback.dto.ApprDto;
 import net.reappay.pg.payments.paymentsback.dto.OrderDto;
 import net.reappay.pg.payments.paymentsback.dto.PayDto;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
-public class MybatisServiceImpl implements MybatisService{
+public class MybatisServiceImpl {
 
     private final MybatisDao mybatisDao;
 
@@ -31,6 +32,11 @@ public class MybatisServiceImpl implements MybatisService{
     public String findUserSeqUserId(String CustId){
         String UserSeq = mybatisDao.findUserSeqUserId(CustId);
         return UserSeq;
+    }
+
+    public ApprDto findApprovalTranSeq(String TranSeq){
+        ApprDto apprDto= mybatisDao.findApprovalTranSeq(TranSeq);
+        return apprDto;
     }
 
     public void addOrder(OrderDto orderDto) {

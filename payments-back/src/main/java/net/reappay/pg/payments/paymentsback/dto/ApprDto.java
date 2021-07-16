@@ -1,13 +1,9 @@
 package net.reappay.pg.payments.paymentsback.dto;
 
 import lombok.Data;
-import net.reappay.pg.payments.paymentsback.dto.OrderDto;
-
-import java.sql.Date;
-import java.sql.Time;
 
 @Data
-public class PayDto {
+public class ApprDto {
 
     private String apprType;
     private String certiType;
@@ -17,6 +13,7 @@ public class PayDto {
     private String lastTidNum;
     private String currencyType;
     private String status;
+    private String productType;
     private String ipAddr;
     private String tradeDate;
     private String tradeTime;
@@ -40,7 +37,6 @@ public class PayDto {
     private String expDate;
     private String installment;
     private String amount;
-    private String productType;
     private String merchantNo;
     private String authSendType;
     private String approvalSendType;
@@ -78,6 +74,7 @@ public class PayDto {
     private String userSeq;
     private String PgSeq;
     private String custId;
+
 
     private String custName;
     private String custPhone;

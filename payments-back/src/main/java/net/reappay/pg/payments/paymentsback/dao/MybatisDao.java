@@ -2,6 +2,7 @@ package net.reappay.pg.payments.paymentsback.dao;
 
 import net.reappay.pg.payments.paymentsback.dto.OrderDto;
 import net.reappay.pg.payments.paymentsback.dto.PayDto;
+import net.reappay.pg.payments.paymentsback.dto.ApprDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Repository;
@@ -19,6 +20,12 @@ public interface MybatisDao {
     String findPgMerchNoUserId(String CustId) throws DataAccessException;
     String findPgTidUserId(String CustId) throws DataAccessException;
     String findUserSeqUserId(String CustId) throws DataAccessException;
+
+    /**
+     * 주문정보 가지고 오기
+     * @param TranSeq
+     */
+    ApprDto findApprovalTranSeq(String TranSeq) throws DataAccessException;
     /**
      * 주문정보 디비저장
      *

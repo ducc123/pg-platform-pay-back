@@ -2,32 +2,121 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="net.reappay.pg.payments.paymentsback.dao.MybatisDao">
 
-    <select id="findPgMerchNoUserId" parameterType="string" resultType="string">
-        select  pg_merch_no
+    <select id="findUserInfo" parameterType="string" resultType="UserDto">
+        /** 회원 정보 가져오기 **/
+        select  user_cate,pg_merch_no,pg_tid,user_seq
         FROM    tb_user
         WHERE   user_id = #{userId}
     </select>
 
-    <select id="findPgTidUserId" parameterType="string" resultType="string">
-        select  pg_tid
-        FROM    tb_user
-        WHERE   user_id = #{userId}
-    </select>
-
-    <select id="findUserSeqUserId" parameterType="string" resultType="string">
-        select  user_seq
-        FROM    tb_user
-        WHERE   user_id = #{userId}
+    <select id="limitAmtCheck"
+            parameterType="payDto"
+            resultType="String">
+        SELECT F_CHK_APPAMT(#{pgMerchNo}, #{totAmt}) LIMIT_CHECK
     </select>
 
     <!-- 거래번호 생성 -->
     <select id="getTranSeq" resultType="string">
+        /** 거래번호 생성 **/
         SELECT CONCAT(DATE_FORMAT(NOW(),'%Y%m%d%H%i%S'), SUBSTR(CONCAT('00000000', F_GET_SEQUENCE('TRANSEQ')),-8))
     </select>
 
     <!-- 거래번호 생성 -->
     <select id="getOrderId" resultType="string">
+        /** 주문번호 생성 **/
         SELECT CONCAT(DATE_FORMAT(NOW(),'%Y%m%d%H%i%S'), SUBSTR(CONCAT('00000000', F_GET_SEQUENCE('ORDER_NO')),-8))
     </select>
+
+    <select id="findPgTidInfo"
+            parameterType="orderDto"
+            resultType="payTidInfo">
+        /** Tid 정보 조회 **/
+        SELECT PGC.BIZ_NO
+        , PGC.CORP_NO
+        , PGC.comp_nm
+        , PGC.PG_MERCH_NO
+        , PGC.MERCH_NM
+        , PTM.PG_TID
+        , PTM.PG_TID_NM
+        , PTM.CERT_TYPE
+        , PGC.TAX_FLAG
+        , PTM.PAY_MTD_SEQ
+        , PTM.PAY_CHN_CATE
+        , PGC.APPREQ_CHK_AMT
+        , PTM.SVC_STAT
+        , PGC.SVC_STAT PG_SVC_STAT
+        FROM TB_PG_TID_MST PTM
+        ,(SELECT CMP.COMP_NM
+        , MST.PG_MERCH_NO
+        , MST.MERCH_NM
+        , CMP.TAX_FLAG
+        , MST.APP_CHK_AMT
+        , CMP.BIZ_NO
+        , CMP.CORP_NO
+        , MST.APPREQ_CHK_AMT
+        , MST.SVC_STAT
+        FROM TB_PG_MST MST
+        , TB_COMPANY CMP
+        WHERE MST.DEL_FLAG = 'N'
+        AND MST.SVC_STAT = '00'
+        AND CMP.DEL_FLAG = 'N'
+        AND CMP.USE_FLAG = 'Y'
+        AND MST.COMP_SEQ = CMP.COMP_SEQ) PGC
+        WHERE PTM.DEL_FLAG     = 'N'
+        AND PTM.SVC_STAT     = '00'
+        AND PTM.PG_MERCH_NO  = PGC.PG_MERCH_NO
+        <if test="pgMerchNo != null and pgMerchNo !='' and userCate == '01'">
+            AND PTM.PG_MERCH_NO = #{pgMerchNo}
+            <if test="pgTid != null and pgTid !='' ">
+                AND PTM.PG_TID = #{pgTid}
+            </if>
+        </if>
+        <if test="pgTid != null and pgTid !='' and userCate == '02' ">
+            AND PTM.PG_TID = #{pgTid}
+        </if>
+        <!--  <if test="pgTid != null and pgTid !='' ">
+              AND PTM.PG_TID = #{pgTid}
+          </if>-->
+    </select>
+
+    <select id="findTerminal"
+            parameterType="orderDto"
+            resultType="payTerminalInfo">
+        /** Terminal 조회 **/
+        SELECT DTL.PAY_MTD_SEQ
+             , MTD.START_DT
+             , MTD.END_DT
+             , DTL.APP_ISS_CD
+             , DTL.TID_MTD
+             , DTL.TERMINAL_NO
+             , DTL.PAY_MTD
+             , DTL.MERCH_NO
+             , DTL.TERMINAL_PWD
+             , DTL.FIELD_KEY
+             , DTL.FIELD_IV
+        FROM TB_PAY_MTD MTD
+           , (SELECT MDD.*
+                   , TID.TERMINAL_PWD
+                   , TID.FIELD_KEY
+                   , TID.FIELD_IV
+              FROM TB_PAY_MTD_DETAIL MDD
+                 , TB_MID_INFO TMI
+                 , TB_TID_INFO TID
+              WHERE MDD.MERCH_NO = TMI.MERCH_NO
+                AND MDD.TERMINAL_NO = TID.TERMINAL_NO
+                AND MDD.DEL_FLAG = 'N'
+                AND MDD.USE_FLAG = 'Y'
+                AND TID.DEL_FLAG = 'N'
+                AND TID.USE_FLAG = 'Y') DTL
+        WHERE MTD.PAY_MTD_SEQ = DTL.PAY_MTD_SEQ
+          AND MTD.DEL_FLAG    = 'N'
+          AND MTD.USE_FLAG    = 'Y'
+          AND DTL.DEL_FLAG    = 'N'
+          AND DTL.USE_FLAG    = 'Y'
+          AND DTL.PAY_MTD_SEQ = #{payMtdSeq}
+        ORDER BY APP_ISS_CD DESC
+            LIMIT 1
+    </select>
+
 
 </mapper>

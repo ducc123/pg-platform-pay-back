@@ -4,14 +4,19 @@ import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
 import net.reappay.pg.payments.paymentsback.dto.ApprDto;
+import net.reappay.pg.payments.paymentsback.dto.OrderDto;
 import net.reappay.pg.payments.paymentsback.dto.PayDto;
-import net.reappay.pg.payments.paymentsback.proto.PaymentRequest;
-import net.reappay.pg.payments.paymentsback.proto.PaymentResponse;
-import net.reappay.pg.payments.paymentsback.proto.PaymentServiceGrpc;
+import net.reappay.pg.payments.paymentsback.dto.UserDto;
+import net.reappay.pg.payments.paymentsback.entity.PayTerminalInfo;
+import net.reappay.pg.payments.paymentsback.entity.PayTidInfo;
+import net.reappay.pg.payments.paymentsback.enums.PayMethodEnum;
+import net.reappay.pg.payments.paymentsback.proto.*;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
@@ -23,7 +28,83 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
 
     @Autowired
     private final MybatisServiceImpl mybatisServiceImpl;
+    
+    //주문처리 서비스
+    @Override
+    public void orderCall(OrderRequest request, StreamObserver<OrderResponse> responseObserver) {
 
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+        OrderDto orderDto       = modelMapper.map(request, OrderDto.class);
+
+        //transeq 생성해서 저장
+        String tranSeq = mybatisServiceImpl.getTranSeq();
+        orderDto.setTranSeq(tranSeq);
+
+        //주문일 주문시간설정
+        Calendar cal = Calendar.getInstance();
+        SimpleDateFormat sdf    = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat sdf2   = new SimpleDateFormat("HH:mm:ss");
+        String datestr = sdf.format(cal.getTime());
+        String timestr = sdf2.format(cal.getTime());
+        orderDto.setOrderDate(datestr);
+        orderDto.setOrderTime(timestr);
+        orderDto.setTranType("10");
+
+        UserDto userDto = mybatisServiceImpl.findUserInfo(orderDto.getCustId());
+        orderDto.setUserCate(userDto.getUserCate());
+        orderDto.setCurrencyType("KRW");
+
+        //PgMerchNo PgTid설정
+        String PgMerchNo        = "";
+        String PgTid            = "";
+
+        try {
+            PgMerchNo               = userDto.getPgMerchNo();
+            PgTid                   = userDto.getPgTid();
+
+            orderDto.setPgMerchNo(PgMerchNo);
+            orderDto.setPgTid(PgTid);
+            log.info("PgMerchNo============="+  PgMerchNo);
+            log.info("PgTid============="+      PgTid);
+            PayTidInfo payTidInfo = mybatisServiceImpl.findPgTidInfo(orderDto);
+            orderDto.setPayMtdSeq(payTidInfo.getPayMtdSeq());
+
+            //터미널 정보가져오기
+            PayTerminalInfo payTerminalInfo = mybatisServiceImpl.findTerminal(orderDto);
+            orderDto.setStoreId(payTerminalInfo.getTerminalNo());
+
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+        orderDto.setPgMerchNo(PgMerchNo);
+        orderDto.setPgTid(PgTid);
+
+        //클라이언트 아이피정보 설정
+        String cip              = null;
+        try {
+            cip = Inet4Address.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        orderDto.setCustIp(cip);
+
+        //결제방식을 카드로 설정 (ENUM에서 불러옴)
+        orderDto.setPayMethod(PayMethodEnum.CARD);
+
+        //한도체크 ing....
+        //payLimitAmtValidation(orderDto);
+
+        //가맹점 주문정보 tb_approval 저장
+        mybatisServiceImpl.addOrder(orderDto);
+
+        //기본 response처리
+        OrderResponse response  = OrderResponse.newBuilder().build();
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+    }
+
+    //승인처리 서비스
     @Override
     public void paymentCall(PaymentRequest request, StreamObserver<PaymentResponse> responseObserver) {
 
@@ -47,10 +128,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
 
         payDto.setOrderDate(apprDto.getOrderDate());
         payDto.setOrderTime(apprDto.getOrderTime());
-        payDto.setFreeAmt(apprDto.getFreeAmt());
-        payDto.setVatAmt(apprDto.getVatAmt());
-        payDto.setTotAmt(apprDto.getTotAmt());
-        payDto.setCurrencyType(apprDto.getCurrency());
+        payDto.setCurrencyType(apprDto.getCurrencyType());
         payDto.setGoodsCode(apprDto.getGoodsCode());
         payDto.setGoodsName(apprDto.getGoodsName());
         payDto.setCustName(apprDto.getCustName());
@@ -61,10 +139,11 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setPgTid(apprDto.getPgTid());
         payDto.setStatus(apprDto.getStatus());
         payDto.setInstallment(apprDto.getInstallment());
+        payDto.setTranStatus("00");
 
-        int svcAmt = Integer.parseInt(payDto.getAmount())-payDto.getVatAmt();
-        payDto.setSvcAmt(svcAmt);
-        payDto.setTranStatus("10");
+        //금액계산
+        validAmt(payDto);
+
         //승인클라이언트 아이피정보 설정
         String cip              = null;
         try {
@@ -74,8 +153,9 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         }
         payDto.setIpAddr(cip);
 
-        String UserSeq          = "";
-        UserSeq                 = mybatisServiceImpl.findUserSeqUserId(payDto.getCustId());
+        String UserSeq  = "";
+        UserDto userDto = mybatisServiceImpl.findUserInfo(payDto.getCustId());
+        UserSeq         = userDto.getUserSeq();
         payDto.setUserSeq(UserSeq);
         payDto.setPayChnCate("10");
 
@@ -109,55 +189,63 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
+    
+    public void validAmt(PayDto payDto){
+
+        BigDecimal totBd    = payDto.getAmount();
+        BigDecimal vatBd    = totBd.divide(new BigDecimal("11"), 0, RoundingMode.DOWN);
+        BigDecimal splAmt   = totBd.subtract(vatBd);
+        BigDecimal svcAmt   = totBd.subtract(splAmt.add(vatBd));
+
+        payDto.setTotAmt(totBd);                // 결제금액 입력
+        payDto.setVatAmt(vatBd);                // 부가세 금액 입력
+        payDto.setSvcAmt(svcAmt);                // 과세 금액
+        payDto.setSplAmt(splAmt);               // 공급가액
+    }
 
     public PaymentServiceImpl(MybatisServiceImpl mybatisServiceImpl) {
         this.mybatisServiceImpl = mybatisServiceImpl;
     }
 
-    public PayDto validAmt(PayDto payDto){
-
-         return payDto;
-    }
-
-    /*public void payLimitAmtValidation(PayDto payDto) {
-        String limitAmt = functionService.limitAmtCheck(payDto);
+    public void payLimitAmtValidation(OrderDto orderDto) {
+        String limitAmt = mybatisServiceImpl.limitAmtCheck(orderDto);
 
         log.debug("=======> limitAmt : {}", limitAmt);
 
         // 한도금액
         if (limitAmt=="0") {
-            PayTidInfo payTidInfo = payDto.getPayTidInfo();
+            PayTidInfo payTidInfo = mybatisServiceImpl.findPgTidInfo(orderDto);
 
             // 건별 결제 한도
-            int perLimitAmt = ValueUtils.getInt(payTidInfo.getAppreqChkAmt());
+            int perLimitAmt = Integer.parseInt(payTidInfo.getAppreqChkAmt());
 
             log.debug("=======> perLimitAmt : {}", perLimitAmt);
 
             // 건별 한도가 0이 아니면 비교 (0인경우 한도x)
             if (perLimitAmt > 0) {
-                int payAmt = ValueUtils.getInt(payDto.getTotAmt());
+                int payAmt = orderDto.getTotAmt();
 
                 log.debug("=======> payAmt : {}", payAmt);
 
                 // 결제 금액이 건 별 결제 한도보다 많은 경우
                 if (payAmt > perLimitAmt) {
                     log.error("### "+3003 + " : 건별 결제한도를 초과하였습니다.");
-                    throw new InvalidPayAmtException("건별 결제한도를 초과하였습니다.", 3003);
+                    //throw new InvalidPayAmtException("건별 결제한도를 초과하였습니다.", 3003);
                 }
             }
         } else {
 
             if (limitAmt=="1") {
                 log.error("### "+3004 + " : 월 결제한도를 초과하였습니다");
-                throw new InvalidPayAmtException("월 결제한도를 초과하였습니다.", 3004);
+                //throw new InvalidPayAmtException("월 결제한도를 초과하였습니다.", 3004);
             } else if (limitAmt=="2") {
                 log.error("### "+3005 + " : 년 결제한도를 초과하였습니다.");
-                throw new InvalidPayAmtException("년 결제한도를 초과하였습니다.", 3005);
+                //throw new InvalidPayAmtException("년 결제한도를 초과하였습니다.", 3005);
             } else {
                 log.error("### "+3006 + " : 결제한도를 초과하였습니다.");
-                throw new InvalidPayAmtException("결제한도를 초과하였습니다.", 3006);
+                //throw new InvalidPayAmtException("결제한도를 초과하였습니다.", 3006);
             }
         }
 
-    }*/
+    }
 }

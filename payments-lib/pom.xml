@@ -9,7 +9,7 @@
     </parent>
     <groupId>net.reappay.pg.payments</groupId>
     <artifactId>payments-lib</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>reappaypg-payments-lib</name>
     <description>Demo project for Spring Boot</description>
     <packaging>jar</packaging>

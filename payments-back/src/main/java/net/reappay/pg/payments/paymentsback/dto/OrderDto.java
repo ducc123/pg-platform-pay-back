@@ -20,7 +20,7 @@ public class OrderDto {
     private String certiType;
     private String pgMerchNo;
     private String pgTid;
-    private String payMethod;
+    private Enum payMethod;
     private String orderName;
     private String goodsCode;
     private String custIp;
@@ -29,6 +29,8 @@ public class OrderDto {
     private String custPhone;
     private String orderDate;
     private String orderTime;
+    private String userCate;
+    private String payMtdSeq;
 
 
     private String expDate;

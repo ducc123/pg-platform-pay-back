@@ -87,7 +87,6 @@ public class ApprDto {
     private String goodsName;
     private String goodsCode;
 
-    private String currency;
     private String payChnCate;
 
     private int splAmt;

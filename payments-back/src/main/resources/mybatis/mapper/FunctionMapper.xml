@@ -14,6 +14,12 @@
         WHERE   user_id = #{userId}
     </select>
 
+    <select id="findUserSeqUserId" parameterType="string" resultType="string">
+        select  user_seq
+        FROM    tb_user
+        WHERE   user_id = #{userId}
+    </select>
+
     <!-- 거래번호 생성 -->
     <select id="getTranSeq" resultType="string">
         SELECT CONCAT(DATE_FORMAT(NOW(),'%Y%m%d%H%i%S'), SUBSTR(CONCAT('00000000', F_GET_SEQUENCE('TRANSEQ')),-8))

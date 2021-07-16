@@ -54,15 +54,18 @@ public class OrderServiceImpl extends OrderServiceGrpc.OrderServiceImplBase {
         //PgMerchNo PgTid설정
         String PgMerchNo        = "";
         String PgTid            = "";
+
+
         try {
             PgMerchNo           = mybatisService.findPgMerchNoUserId(request.getCustId());
             PgTid               = mybatisService.findPgTidUserId(request.getCustId());
+
         } catch (NullPointerException e) {
             e.printStackTrace();
         }
         orderDto.setPgMerchNo(PgMerchNo);
         orderDto.setPgTid(PgTid);
-        
+
         //클라이언트 아이피정보 설정
         String cip              = null;
         try {

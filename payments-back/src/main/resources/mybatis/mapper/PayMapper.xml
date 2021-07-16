@@ -143,16 +143,9 @@
             pay_chn_cate,                       //결제채널(001)
             card_num,                           //카드번호
             card_issu_cd,                       //카드발급사코드
-            card_issu_nm,
-            card_acqr_cd,                       //카드매입사코드
-            card_acqr_nm,
-            card_type_cd,                       //카드유형코드
-            card_type_nm,
-            card_cate,                          //카드유형
             appr_status,                        //승인상태
             appr_date,                          //승인일자
             appr_time,                          //승인시간
-            appr_kind,                          //승인종류('')
             appr_no,                            //승인번호(AuthNo)
             appr_req_ip,                        //승인요청ip
             appr_resp_cd,                       //승인응답코드
@@ -162,51 +155,55 @@
             product_type,                       //상품유형
             product_cd,                         //상품코드
             product_nm,                         //상품명
-            cust_type,                          //고객유형
             cust_id,                            //고객아이디
             cust_nm,                            //고객명
             cust_email,                         //고객이메일
             cust_phone,                         //고객휴대폰
             cust_ip,                            //아이피
-            biz_no,                             //사업자등록번호
             order_seq,                          //주문번호
             merch_no,                           //원천차가맹점번호
             tid,                                //터미널ID
             installment,                        //할부개월수
             memb_user_no,                       //회원seq
-            appr_issu_cd,                       //승인카드 발급사
             tb_nm                               //테이블명
         )
         VALUES
         (
             #{tranSeq},
-            #{tranDate},
-            #{tranTime},
+            #{orderDate},
+            #{orderTime},
             #{tranType},
-            #{orderNumber},
-            #{orderName},
-            #{goodsName},
+            #{tranStatus},
+            #{totAmt},
+            #{splAmt},
+            #{svcAmt},
+            #{freeAmt},
+            #{vatAmt},
+            #{currency},
+            #{payChnCate},
+            #{cardNo},
+            #{cardCode},
+            #{status},
+            #{tradeDate},
+            #{tradeTime},
+            #{authNo},
+            #{ipAddr},
+            #{ApprovalCode},
+            #{ApprovalMsg},
+            #{authNo},
             #{goodsCode},
-            #{currencyType},
+            #{goodsName},
             #{custId},
             #{custName},
             #{custEmail},
             #{custPhone},
             #{custIp},
-            #{installment},
-            #{totAmt},
-            #{freeAmt},
-            #{vatAmt},
+            #{orderNumber},
             #{pgMerchNo},
-            #{AuthNo},
-            #{merchantNo},
-            #{payMethod},
-            #{returnUrl},
-            #{successUrl},
-            #{failtureUrl},
-            #{orderDate},
-            #{orderTime},
-            #{productType}
+            #{pgTid},
+            #{installment},
+            #{userSeq},
+            #{tableYd},
         )
     </insert>
 

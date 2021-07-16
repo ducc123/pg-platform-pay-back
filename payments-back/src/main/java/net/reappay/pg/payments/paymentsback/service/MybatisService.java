@@ -22,12 +22,12 @@ public interface MybatisService {
      */
     String findPgMerchNoUserId(String CustId) throws DataAccessException;
     String findPgTidUserId(String CustId) throws DataAccessException;
+    String findUserSeqUserId(String CustId) throws DataAccessException;
 
     void addOrder(OrderDto orderDto) throws DataAccessException;
     void addApproval(PayDto payDto) throws DataAccessException;
     void addTransaction(PayDto payDto) throws DataAccessException;
     void addTransactionCard(PayDto payDto) throws DataAccessException;
     void addTransactionError(PayDto payDto) throws DataAccessException;
-    void addTransactionCardPg(PayDto payDto) throws DataAccessException;
-}
+    void addTransactionCardPg(PayDto payDto) throws DataAccessException;}
 

@@ -18,7 +18,7 @@ public interface MybatisDao {
      */
     String findPgMerchNoUserId(String CustId) throws DataAccessException;
     String findPgTidUserId(String CustId) throws DataAccessException;
-
+    String findUserSeqUserId(String CustId) throws DataAccessException;
     /**
      * 주문정보 디비저장
      *

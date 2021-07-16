@@ -42,6 +42,9 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setTradeTime(timestr);
         payDto.setTableYd(cardpgdatestr);
 
+        int svcAmt = Integer.parseInt(payDto.getAmount())-payDto.getVatAmt();
+        payDto.setSvcAmt(svcAmt);
+        payDto.setTranStatus("10");
         //승인클라이언트 아이피정보 설정
         String cip              = null;
         try {
@@ -51,6 +54,11 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         }
         payDto.setIpAddr(cip);
 
+        String UserSeq          = "";
+        UserSeq                 = mybatisService.findUserSeqUserId(payDto.getCustId());
+        payDto.setUserSeq(UserSeq);
+        payDto.setPayChnCate("10");
+
         //승인완료 후 승인정보받아서 tb_approval 업데이트
         mybatisService.addApproval(payDto);
 
@@ -58,13 +66,13 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         String ResultSuccessCode    = "000";
 
         if(ResultCode.equals(ResultSuccessCode)) {
-            log.debug("인증결제({}) 결제결과 = code: {} msg: {}",payDto.getTranSeq(),payDto.getResultCode(),payDto.getResultMsg());
+            log.debug("인증결제성공({}) 결제결과 = code: {} msg: {}",payDto.getTranSeq(),payDto.getResultCode(),payDto.getResultMsg());
             //승인정보 tb_transaction 저장
             mybatisService.addTransaction(payDto);
             //승인정보 tb_transaction_card 저장
             mybatisService.addTransactionCard(payDto);
         } else {
-            log.debug("인증결제({}) 결제결과 = code: {} msg: {}",payDto.getTranSeq(),payDto.getResultCode(),payDto.getResultMsg());
+            log.debug("인증결제실패({}) 결제결과 = code: {} msg: {}",payDto.getTranSeq(),payDto.getResultCode(),payDto.getResultMsg());
             //승인정보 tb_transaction_error 저장(승인실패시)
             mybatisService.addTransactionError(payDto);
         }

@@ -28,22 +28,27 @@ public class MybatisServiceImpl implements MybatisService{
         return PgTid;
     }
 
+    public String findUserSeqUserId(String CustId){
+        String UserSeq = mybatisDao.findUserSeqUserId(CustId);
+        return UserSeq;
+    }
+
     public void addOrder(OrderDto orderDto) {
         mybatisDao.addOrder(orderDto);
     }
     public void addApproval(PayDto payDto) {
         mybatisDao.addApproval(payDto);
     }
-    public void addTransaction(PayDto payDto) {
-        mybatisDao.addApproval(payDto);
-    }
+    public void addTransaction(PayDto payDto) { mybatisDao.addTransaction(payDto); }
     public void addTransactionCard(PayDto payDto) {
-        mybatisDao.addApproval(payDto);
+        //mybatisDao.addApproval(payDto);
     }
     public void addTransactionError(PayDto payDto) {
-        mybatisDao.addApproval(payDto);
+        //mybatisDao.addApproval(payDto);
     }
-    public void addTransactionCardPg(PayDto payDto) { mybatisDao.addApproval(payDto); }
+    public void addTransactionCardPg(PayDto payDto) {
+        //mybatisDao.addApproval(payDto);
+    }
 
 
 }

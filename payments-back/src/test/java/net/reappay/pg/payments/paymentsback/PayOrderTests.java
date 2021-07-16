@@ -24,6 +24,7 @@ class PayOrderTests {
         String randomStr = String.valueOf(rnd.nextInt(10000000));
 
         orders.orderCall(OrderRequest.newBuilder()
+                .setStoreId("coehdus1")
                 .setCustId("coehdus1")
                 .setTranType("10")
                 .setCustName("주문자")

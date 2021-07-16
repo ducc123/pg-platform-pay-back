@@ -1,6 +1,7 @@
 package net.reappay.pg.payments.paymentsback.dto;
 
 import lombok.Data;
+import net.reappay.pg.payments.paymentsback.dto.OrderDto;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -63,7 +64,52 @@ public class PayDto {
     private String tranSeq;
     private String tableYd;
 
-    private OrderDto orderDto;
+    private String orderDate;
+    private String orderTime;
+    private int freeAmt;
+    private int vatAmt;
+
     private String tranType;
+
+    private String ApprovalMsg;
+    private String ApprovalCode;
+
+    private String userSeq;
+    private String PgSeq;
+    private String custId;
+
+    public void setorderDate(OrderDto orderDto) {
+        this.orderDate = orderDto.getOrderDate();
+    }
+
+    public void setorderTime(OrderDto orderDto) {
+        this.orderTime = orderDto.getOrderTime();
+    }
+
+    public void setfreeAmt(OrderDto orderDto) {
+        this.freeAmt = orderDto.getFreeAmt();
+    }
+
+    public void setvatAmt(OrderDto orderDto) {
+        this.vatAmt = orderDto.getVatAmt();
+    }
+
+    public void settotAmt(OrderDto orderDto) {
+        this.totAmt = orderDto.getTotAmt();
+    }
+
+    public void setcurrency(OrderDto orderDto) {
+        this.currency = orderDto.getCurrencyType();
+    }
+
+    private String currency;
+    private String payChnCate;
+
+    private int splAmt;
+    private int svcAmt;
+    private String tranStatus;
+    private int totAmt;
+
+
 
 }

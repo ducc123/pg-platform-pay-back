@@ -22,7 +22,7 @@ class PayOrderTests {
         Random rnd = new Random();
         String randomStr = String.valueOf(rnd.nextInt(10000000));
 
-        OrderResponse paymentProto = orders.orderCall(OrderRequest.newBuilder()
+        orders.orderCall(OrderRequest.newBuilder()
                 .setCustId("coehdus1")
                 .setCustName("주문자")
                 .setCustEmail("test@test.com")
@@ -30,19 +30,13 @@ class PayOrderTests {
                 .setGoodsName("상품명%^%^&&!~~")
                 .setGoodsCode("123456")
                 .setProductType("1")
-                .setTotAmt(10000)
+                .setTotAmt(100)
                 .setInstallment("0")
-                .setOrderSeq(randomStr)
                 .setReturnUrl("http://naver.com")
                 .setSuccessUrl("http://naver.com")
                 .setFailtureUrl("http://naver.com")
                 .build()
         );
-
-        System.out.println("ResultCode = "+paymentProto.getResultCode());
-        System.out.println("ResultMessage = "+paymentProto.getResultMessage());
-        System.out.println("PgTid = "+paymentProto.getPgTid());
-        System.out.println("TranSeq = "+paymentProto.getTranSeq());
 
         channel.shutdown();
     }

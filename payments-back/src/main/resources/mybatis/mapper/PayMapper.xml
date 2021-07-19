@@ -2,6 +2,13 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="net.reappay.pg.payments.paymentsback.dao.MybatisDao">
 
+    <select id="countApprovalTranSeq" parameterType="string" resultType="int">
+        select
+            count(*) as tt
+        FROM    tb_transaction_card
+        WHERE   tran_seq = #{tranSeq}
+    </select>
+
     <select id="findApprovalTranSeq" parameterType="string" resultType="ApprDto">
         select
                order_date,
@@ -14,7 +21,7 @@
                cust_name,
                cust_email,
                cust_phone,
-               order_number,
+               order_seq,
                pg_merch_no,
                pg_tid,
                status,
@@ -33,7 +40,7 @@
             appr_type,
             certi_type,
             store_id,
-            order_number,
+            order_seq,
             goods_name,
             goods_code,
             currency_type,
@@ -62,7 +69,7 @@
             #{apprType},
             #{certiType},
             #{storeId},
-            #{orderNumber},
+            #{orderSeq},
             #{goodsName},
             #{goodsCode},
             #{currencyType},
@@ -130,7 +137,6 @@
             point3= #{point3} ,
             point4= #{point4} ,
             van_transaction_no= #{vanTransactionNo} ,
-            filler= #{filler} ,
             auth_type= #{authType} ,
             MPI_position_type= #{MPIPositionType} ,
             MPI_re_use_type= #{MPIReUseType} ,
@@ -192,14 +198,16 @@
             pg_tid,                             /* PG TID */
 
             installment,                        /* 할부개월수 */
-            memb_user_no,                       /* 회원seq */
-            tb_nm,                               /* 테이블명 */
+            ins_user,                           /* 회원seq */
+            tb_nm,                              /* 테이블명 */
             noti_try_cnt,
             noti_status,
 
             tran_chk_flag,
             acqr_chk_flag,
-            billkey_yn
+            billkey_yn,
+            tran_cate,
+            valid_thru
         )
         VALUES
         (
@@ -228,8 +236,8 @@
             #{ApprovalCode},
 
             #{ApprovalMsg},
-            #{Tid},                               /* PgTid */
-            #{installment},
+            #{pgSeq},                               /* pgSeq */
+            #{installment},                         /* 할부개월수 */
             #{productType},
             #{goodsCode},
 
@@ -253,7 +261,9 @@
 
             #{tranChkFlag},
             #{acqrChkFlag},
-            #{billkeyYn}
+            #{billkeyYn},
+            #{tranCate},
+            #{expDate}
         )
     </insert>
 
@@ -281,6 +291,88 @@
             #{storeId},
             #{pgMerchNo},
             #{userSeq}
+        )
+    </insert>
+
+    <insert id="addTransactionError" parameterType="PayDto" >
+        /** tb_transaction_card 에러 **/
+        insert into tb_transaction_error
+        (
+            tran_seq,                           /* 거래 일련번호 */
+            tran_date,                          /* 거래일자 */
+            tran_time,                          /* 거래시간 */
+            tran_type,                          /* 거래구분 ( 정상결제 : 10 , 취소결제 : 40) */
+
+            tot_amt,                            /* 거래금액 */
+            currency,                           /* 통화 */
+            pay_chn_cate,                       /* 결제채널 */
+            card_num,                           /* 카드번호 */
+            card_issu_cd,                       /* 카드발급사코드 */
+            card_issu_nm,                       /* 카드발급사명 */
+
+            appr_date,                          /* 승인일자 */
+            appr_time,                          /* 승인시간 */
+            appr_req_ip,                        /* 승인요청ip */
+            appr_resp_cd,                       /* 승인응답코드 */
+            appr_resp_msg,                      /* 승인응답메시지 */
+
+            pg_seq,                             /* PG거래번호 */
+            product_cd,                         /* 상품코드 */
+            product_nm,                         /* 상품명 */
+            cust_id,                            /* 고객아이디 */
+            cust_nm,                            /* 고객명 */
+            cust_email,                         /* 고객이메일 */
+            cust_phone,                         /* 고객휴대폰 */
+
+            order_seq,                          /* 주문번호 */
+            merch_no,                           /* 원천차가맹점번호 */
+            pg_merch_no,                        /* PG 가맹점번호 */
+            tid,                                /* 터미널ID */
+            pg_tid,                             /* PG TID */
+
+            valid_thru,
+            tran_cate,                        /* 할부개월수 */
+            ins_user                           /* 회원seq */
+
+        )
+        VALUES
+        (
+            #{tranSeq},
+            #{orderDate},
+            #{orderTime},
+            #{tranType},
+
+            #{totAmt},
+            #{currencyType},
+            #{payChnCate},
+            #{cardNo},
+            #{cardCode},
+            #{cardIssuNm},
+
+            #{tradeDate},
+            #{tradeTime},
+            #{ipAddr},
+            #{ApprovalCode},
+            #{ApprovalMsg},
+            #{pgSeq},                               /* pgSeq */
+            #{goodsCode},
+
+            #{goodsName},
+            #{custId},
+            #{custName},
+            #{custEmail},
+            #{custPhone},
+
+            #{orderNumber},
+            #{merchantNo},
+            #{pgMerchNo},
+            #{storeId},
+            #{pgTid},
+
+            #{userSeq},
+            #{tranCate},
+            #{expDate}
+
         )
     </insert>
 

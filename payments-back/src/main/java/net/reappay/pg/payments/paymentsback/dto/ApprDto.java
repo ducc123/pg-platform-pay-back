@@ -45,7 +45,6 @@ public class ApprDto {
     private String point3;
     private String point4;
     private String vanTransactionNo;
-    private String filler;
     private String authType;
     private String MPIPositionType;
     private String MPIReUseType;
@@ -79,7 +78,7 @@ public class ApprDto {
     private String custName;
     private String custPhone;
     private String custIp;
-    private String orderNumber;
+    private String orderSeq;
     private String pgMerchNo;
     private String pgTid;
 

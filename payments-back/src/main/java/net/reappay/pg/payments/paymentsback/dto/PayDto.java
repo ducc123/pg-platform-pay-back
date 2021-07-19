@@ -46,7 +46,7 @@ public class PayDto {
     private String point3;
     private String point4;
     private String vanTransactionNo;
-    private String filler;
+    private String pgSeq;
     private String authType;
     private String MPIPositionType;
     private String MPIReUseType;
@@ -99,6 +99,8 @@ public class PayDto {
     private int tranChkFlag;
     private int acqrChkFlag;
     private String billkeyYn;
+    private String tranCate;
+    private String acqrStatus;
 
 
 }

@@ -35,6 +35,9 @@ public interface MybatisDao {
      * @param TranSeq
      */
     ApprDto findApprovalTranSeq(String TranSeq) throws DataAccessException;
+
+    int countApprovalTranSeq(String TranSeq) throws DataAccessException;
+
     PayTidInfo findPgTidInfo(OrderDto orderDto) throws DataAccessException;
     PayTerminalInfo findTerminal(OrderDto orderDto) throws DataAccessException;
     /**

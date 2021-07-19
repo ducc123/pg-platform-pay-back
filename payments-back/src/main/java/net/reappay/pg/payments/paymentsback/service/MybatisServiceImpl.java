@@ -40,6 +40,11 @@ public class MybatisServiceImpl {
         return apprDto;
     }
 
+    public int countApprovalTranSeq(String TranSeq){
+        int TranSeqCount= mybatisDao.countApprovalTranSeq(TranSeq);
+        return TranSeqCount;
+    }
+
     public PayTidInfo findPgTidInfo(OrderDto orderDto){
         PayTidInfo payTidInfo= mybatisDao.findPgTidInfo(orderDto);
         return payTidInfo;
@@ -55,9 +60,7 @@ public class MybatisServiceImpl {
         return cardIss;
     }
 
-    public void addOrder(OrderDto orderDto) {
-        mybatisDao.addOrder(orderDto);
-    }
+    public void addOrder(OrderDto orderDto) { mybatisDao.addOrder(orderDto); }
     public void addApproval(PayDto payDto) {
         mybatisDao.addApproval(payDto);
     }
@@ -65,9 +68,7 @@ public class MybatisServiceImpl {
     public void addTransactionCard(PayDto payDto) {
         mybatisDao.addTransactionCard(payDto);
     }
-    public void addTransactionError(PayDto payDto) {
-        //mybatisDao.addApproval(payDto);
-    }
+    public void addTransactionError(PayDto payDto) { mybatisDao.addTransactionError(payDto);     }
     public void addTransactionCardPg(PayDto payDto) {
         //mybatisDao.addTransactionCardPg(payDto);
     }

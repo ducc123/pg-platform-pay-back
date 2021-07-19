@@ -12,6 +12,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
@@ -49,6 +50,11 @@ public class MybatisServiceImpl {
         return payTerminalInfo;
     }
 
+    public Map<String, String> findCardIssCdByCardNoString(PayDto payDto) {
+        Map<String, String> cardIss = mybatisDao.findCardIssCdByCardNoString(payDto);
+        return cardIss;
+    }
+
     public void addOrder(OrderDto orderDto) {
         mybatisDao.addOrder(orderDto);
     }
@@ -63,7 +69,7 @@ public class MybatisServiceImpl {
         //mybatisDao.addApproval(payDto);
     }
     public void addTransactionCardPg(PayDto payDto) {
-        mybatisDao.addTransactionCardPg(payDto);
+        //mybatisDao.addTransactionCardPg(payDto);
     }
 
 }

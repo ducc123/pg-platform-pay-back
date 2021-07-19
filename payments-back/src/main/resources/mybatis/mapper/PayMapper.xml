@@ -154,38 +154,52 @@
             tran_time,                          /* 거래시간 */
             tran_type,                          /* 거래구분 ( 정상결제 : 10 , 취소결제 : 40) */
             tran_status,                        /* 거래상태 */
+
             tot_amt,                            /* 거래금액 */
             spl_amt,                            /* 공급가액 ( tot_amt-vat_amt ) */
             svc_amt,                            /* 비과세금액 */
             vat_amt,                            /* 부가세 */
             currency,                           /* 통화 */
+
             pay_chn_cate,                       /* 결제채널 */
             card_num,                           /* 카드번호 */
             card_issu_cd,                       /* 카드발급사코드 */
+            card_issu_nm,                       /* 카드발급사명 */
             appr_status,                        /* 승인상태 */
+
             appr_date,                          /* 승인일자 */
             appr_time,                          /* 승인시간 */
             appr_no,                            /* 승인번호(AuthNo) */
             appr_req_ip,                        /* 승인요청ip */
             appr_resp_cd,                       /* 승인응답코드 */
+
             appr_resp_msg,                      /* 승인응답메시지 */
             pg_seq,                             /* PG거래번호 */
             free_inst_flag,                     /* 무이자할부여부 */
             product_type,                       /* 상품유형 */
             product_cd,                         /* 상품코드 */
+
             product_nm,                         /* 상품명 */
             cust_id,                            /* 고객아이디 */
             cust_nm,                            /* 고객명 */
             cust_email,                         /* 고객이메일 */
             cust_phone,                         /* 고객휴대폰 */
+
             order_seq,                          /* 주문번호 */
             merch_no,                           /* 원천차가맹점번호 */
             pg_merch_no,                        /* PG 가맹점번호 */
             tid,                                /* 터미널ID */
             pg_tid,                             /* PG TID */
+
             installment,                        /* 할부개월수 */
             memb_user_no,                       /* 회원seq */
-            tb_nm                               /* 테이블명 */
+            tb_nm,                               /* 테이블명 */
+            noti_try_cnt,
+            noti_status,
+
+            tran_chk_flag,
+            acqr_chk_flag,
+            billkey_yn
         )
         VALUES
         (
@@ -194,38 +208,52 @@
             #{orderTime},
             #{tranType},
             #{tranStatus},
+
             #{totAmt},
             #{splAmt},
             #{svcAmt},
             #{vatAmt},
             #{currencyType},
+
             #{payChnCate},
             #{cardNo},
             #{cardCode},
+            #{cardIssuNm},
             #{status},
+
             #{tradeDate},
             #{tradeTime},
             #{authNo},
             #{ipAddr},
             #{ApprovalCode},
+
             #{ApprovalMsg},
-            #{authNo},                  /* pg_seq */
+            #{Tid},                               /* PgTid */
             #{installment},
             #{productType},
             #{goodsCode},
+
             #{goodsName},
             #{custId},
             #{custName},
             #{custEmail},
             #{custPhone},
+
             #{orderNumber},
             #{merchantNo},
             #{pgMerchNo},
             #{storeId},
             #{pgTid},
+
             #{installment},
             #{userSeq},
-            #{tableYd}
+            #{tableYd},
+            #{notiTryCnt},
+            #{notiStatus},
+
+            #{tranChkFlag},
+            #{acqrChkFlag},
+            #{billkeyYn}
         )
     </insert>
 
@@ -256,6 +284,7 @@
         )
     </insert>
 
+    <!--
     <insert id="addTransactionCardPg"
             parameterType="tbTranCardPg">
         /** tb_tran_cardpg_YYdd 저장 **/
@@ -384,5 +413,6 @@
         WHERE 1 = 1
         AND TRAN_SEQ = #{tranSeq}
     </update>
+    -->
 
 </mapper>

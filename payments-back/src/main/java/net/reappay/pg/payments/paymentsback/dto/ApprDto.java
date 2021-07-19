@@ -86,6 +86,7 @@ public class ApprDto {
     private String custEmail;
     private String goodsName;
     private String goodsCode;
+    private String payMethod;
 
     private String payChnCate;
 
@@ -93,6 +94,7 @@ public class ApprDto {
     private int svcAmt;
     private String tranStatus;
     private int totAmt;
+    private String storeId;
 
 
 

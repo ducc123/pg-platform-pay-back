@@ -90,5 +90,7 @@ public class PayDto {
 
     private String payChnCate;
     private String tranStatus;
+    private Enum payMethod;
+    private String storeId;
 
 }

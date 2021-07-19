@@ -30,7 +30,7 @@ class PayOrderTests {
                 .setGoodsName("상품명%^%^&&!~~")
                 .setGoodsCode("123456")
                 .setProductType("1")
-                .setTotAmt(100)
+                .setTotAmt(10000)
                 .setInstallment("0")
                 .setOrderNumber(randomStr)
                 .setReturnUrl("http://naver.com")

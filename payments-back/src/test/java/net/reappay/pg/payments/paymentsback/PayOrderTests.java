@@ -32,7 +32,6 @@ class PayOrderTests {
                 .setProductType("1")
                 .setTotAmt(100)
                 .setInstallment("0")
-                .setOrderNumber(randomStr)
                 .setReturnUrl("http://naver.com")
                 .setSuccessUrl("http://naver.com")
                 .setFailtureUrl("http://naver.com")

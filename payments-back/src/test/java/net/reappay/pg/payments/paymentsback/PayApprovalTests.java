@@ -61,13 +61,6 @@ class PayApprovalTests {
                 .setMPIPositionType("40")
                 .setMPIReUseType("1")
                 .setEncData("EncData encriptString~~")
-                .setResultCode("000")
-                .setResultMsg("정상결제완료")
-                .setEtcData1("11")
-                .setEtcData2("22")
-                .setEtcData3("33")
-                .setEtcData4("44")
-                .setEtcData5("55")
                 .build()
         );
 

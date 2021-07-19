@@ -98,6 +98,8 @@ message PaymentRequest {
   string MPIPositionType  = 45; //
   string MPIReUseType     = 46; //
   string EncData          = 47; //
+
+  string pgSeq            = 48; // 립페이 상위(원천사, PG사)의 거래번호
 }
 
 message PaymentResponse {

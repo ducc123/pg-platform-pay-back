@@ -6,10 +6,7 @@
         select
                order_date,
                order_time,
-               order_name,
-               free_amt,
                tot_amt,
-               vat_amt,
                goods_name,
                goods_code,
                currency_type,
@@ -20,12 +17,15 @@
                order_number,
                pg_merch_no,
                pg_tid,
-               status
+               status,
+               tran_type,
+               store_id
         FROM    tb_approval
         WHERE   tran_seq = #{tranSeq}
     </select>
 
     <insert id="addOrder" parameterType="OrderDto" >
+        /** tb_approval 저장 **/
         insert into tb_approval
         (
             tran_seq,
@@ -88,6 +88,7 @@
 
     <!-- approval complete -->
     <update id="addApproval" parameterType="PayDto" >
+        /** tb_approval 완료 **/
         update tb_approval
         set
             appr_type= #{apprType} ,
@@ -144,7 +145,8 @@
         where tran_seq=#{tranSeq}
     </update>
 
-    <insert id="addTransaction" parameterType="PayDto" >
+    <insert id="addTransactionCard" parameterType="PayDto" >
+        /** tb_transaction_card 완료 **/
         insert into tb_transaction_card
         (
             tran_seq,                           /* 거래 일련번호 */
@@ -178,7 +180,9 @@
             cust_phone,                         /* 고객휴대폰 */
             order_seq,                          /* 주문번호 */
             merch_no,                           /* 원천차가맹점번호 */
+            pg_merch_no,                        /* PG 가맹점번호 */
             tid,                                /* 터미널ID */
+            pg_tid,                             /* PG TID */
             installment,                        /* 할부개월수 */
             memb_user_no,                       /* 회원seq */
             tb_nm                               /* 테이블명 */
@@ -215,7 +219,9 @@
             #{custEmail},
             #{custPhone},
             #{orderNumber},
+            #{merchantNo},
             #{pgMerchNo},
+            #{storeId},
             #{pgTid},
             #{installment},
             #{userSeq},
@@ -223,90 +229,36 @@
         )
     </insert>
 
-    <!--
     <insert id="addTransaction" parameterType="PayDto" >
-        insert into tb_transaction_card
+        /** tb_transaction 완료 **/
+        insert into tb_transaction
         (
             tran_seq,                           /* 거래 일련번호 */
             tran_date,                          /* 거래일자 */
-            tran_time,                          /* 거래시간 */
             tran_type,                          /* 거래구분 ( 정상결제 : 10 , 취소결제 : 40) */
-            tran_status,                        /* 거래상태 */
+            pay_method,                         /* 거래상태 */
             tot_amt,                            /* 거래금액 */
-            spl_amt,                            /* 공급가액 ( tot_amt-vat_amt ) */
-            svc_amt,                            /* 비과세금액 */
-            vat_amt,                            /* 부가세 */
-            currency,                           /* 통화 */
-            card_num,                           /* 카드번호 */
-            card_issu_cd,                       /* 카드발급사코드 */
-            appr_status,                        /* 승인상태 */
-            appr_date,                          /* 승인일자 */
-            appr_time,                          /* 승인시간 */
-            appr_no,                            /* 승인번호(AuthNo) */
-            appr_req_ip,                        /* 승인요청ip */
-            appr_resp_cd,                       /* 승인응답코드 */
-            appr_resp_msg,                      /* 승인응답메시지 */
-            pg_seq,                             /* PG거래번호 */
-            free_inst_flag,                     /* 무이자할부여부 */
-            product_type,                       /* 상품유형 */
-            product_cd,                         /* 상품코드 */
-            product_nm,                         /* 상품명 */
-            cust_id,                            /* 고객아이디 */
-            cust_nm,                            /* 고객명 */
-            cust_email,                         /* 고객이메일 */
-            cust_phone,                         /* 고객휴대폰 */
-            cust_ip,                            /* 아이피 */
-            order_seq,                          /* 주문번호 */
-            merch_no,                           /* 원천차가맹점번호 */
-            tid,                                /* 터미널ID */
-            installment,                        /* 할부개월수 */
-            memb_user_no,                       /* 회원seq */
-            tb_nm                               /* 테이블명 */
+            merch_no,                            /* 원천사 가맹점번호 */
+            pg_merch_no,                        /* PG 가맹점번호 */
+            ins_user                            /* 등록아이디 */
+
         )
         VALUES
         (
             #{tranSeq},
             #{orderDate},
-            #{orderTime},
             #{tranType},
-            #{tranStatus},
+            #{payMethod},
             #{totAmt},
-            #{splAmt},
-            #{svcAmt},
-            #{freeAmt},
-            #{vatAmt},
-            #{currency},
-            #{payChnCate},
-            #{cardNo},
-            #{cardCode},
-            #{status},
-            #{tradeDate},
-            #{tradeTime},
-            #{authNo},
-            #{ipAddr},
-            #{ApprovalCode},
-            #{ApprovalMsg},
-            #{authNo},
-            #{goodsCode},
-            #{goodsName},
-            #{custId},
-            #{custName},
-            #{custEmail},
-            #{custPhone},
-            #{custIp},
-            #{orderNumber},
+            #{storeId},
             #{pgMerchNo},
-            #{pgTid},
-            #{installment},
-            #{userSeq},
-            #{tableYd},
+            #{userSeq}
         )
     </insert>
-    -->
 
-    <!--<insert id="insertTranCardPg"
+    <insert id="addTransactionCardPg"
             parameterType="tbTranCardPg">
-        /** tb_tran_cardpg 저장 **/
+        /** tb_tran_cardpg_YYdd 저장 **/
         INSERT INTO #{tableyd}
         (
             TRAN_SEQ
@@ -321,7 +273,6 @@
         , PAY_CHN_CATE
         , TID
         , PG_TID
-        , WCC
         , CARD_CATE
         , ORDER_SEQ
         , TRAN_DT
@@ -362,23 +313,21 @@
         , INS_USER
         , ORG_PG_SEQ
         , PG_MERCH_NO
-        , FILLER
         )
         VALUES
         (
             #{tranSeq}
-        , #{massageType}
+        , #{tranType}
         , #{cardNum}
-        , #{appDt}
-        , #{appTm}
-        , #{appNo}
+        , #{orderDate}
+        , #{orderTime}
+        , #{authNo}
         , #{installment}
         , #{totAmt}
         , #{pgSeq}
         , #{payChnCate}
         , #{tid}
         , #{pgTid}
-        , #{wcc}
         , #{cardCate}
         , #{orderSeq}
         , #{tranDt}
@@ -419,10 +368,8 @@
         , #{userNo}
         , #{orgPgSeq}
         , #{pgMerchNo}
-        , #{filter}
         )
     </insert>
-
 
     <update id="updateTranCardPg" parameterType="tbTranCardPg">
         UPDATE #{tableyd}
@@ -437,5 +384,5 @@
         WHERE 1 = 1
         AND TRAN_SEQ = #{tranSeq}
     </update>
-    -->
+
 </mapper>

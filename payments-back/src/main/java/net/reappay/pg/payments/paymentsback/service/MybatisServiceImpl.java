@@ -57,14 +57,13 @@ public class MybatisServiceImpl {
     }
     public void addTransaction(PayDto payDto) { mybatisDao.addTransaction(payDto); }
     public void addTransactionCard(PayDto payDto) {
-        //mybatisDao.addApproval(payDto);
+        mybatisDao.addTransactionCard(payDto);
     }
     public void addTransactionError(PayDto payDto) {
         //mybatisDao.addApproval(payDto);
     }
     public void addTransactionCardPg(PayDto payDto) {
-        //mybatisDao.addApproval(payDto);
+        mybatisDao.addTransactionCardPg(payDto);
     }
-
 
 }

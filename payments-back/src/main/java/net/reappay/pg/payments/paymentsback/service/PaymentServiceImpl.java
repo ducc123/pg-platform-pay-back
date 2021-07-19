@@ -90,11 +90,8 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         }
         orderDto.setCustIp(cip);
 
-        //결제방식을 카드로 설정 (ENUM에서 불러옴)
-        orderDto.setPayMethod(PayMethodEnum.CARD);
-
         //한도체크 ing....
-        //payLimitAmtValidation(orderDto);
+        payLimitAmtValidation(orderDto);
 
         //가맹점 주문정보 tb_approval 저장
         mybatisServiceImpl.addOrder(orderDto);
@@ -129,7 +126,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
 
         payDto.setOrderDate(apprDto.getOrderDate());
         payDto.setOrderTime(apprDto.getOrderTime());
-        payDto.setCurrencyType(apprDto.getCurrencyType());
+
         payDto.setGoodsCode(apprDto.getGoodsCode());
         payDto.setGoodsName(apprDto.getGoodsName());
         payDto.setCustName(apprDto.getCustName());
@@ -141,9 +138,15 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setStatus(apprDto.getStatus());
         payDto.setInstallment(apprDto.getInstallment());
         payDto.setTranStatus("00");
+        payDto.setTranType(apprDto.getTranType());
+        payDto.setCustId(apprDto.getCustId());
+        payDto.setCurrencyType("KRW");
+        payDto.setMerchantNo("ksnet");
+        payDto.setPayMethod(PayMethodEnum.CARD);
+        payDto.setStoreId(apprDto.getStoreId());
 
         //금액계산
-        validAmt(payDto);
+        setAmt(payDto);
 
         //승인클라이언트 아이피정보 설정
         String cip              = null;
@@ -176,13 +179,14 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             mybatisServiceImpl.addTransaction(payDto);
             //승인정보 tb_transaction_card 저장
             mybatisServiceImpl.addTransactionCard(payDto);
+
         } else {
             log.debug("인증결제실패({}) 결제결과 = code: {} msg: {}",payDto.getTranSeq(),payDto.getResultCode(),payDto.getResultMsg());
             //승인정보 tb_transaction_error 저장(승인실패시)
             mybatisServiceImpl.addTransactionError(payDto);
         }
 
-        //tb_tran_cardpg_yyMM 저장
+        //tb_tran_cardpg_YYmm 저장
         mybatisServiceImpl.addTransactionCardPg(payDto);
         
         //기본 response처리
@@ -191,7 +195,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         responseObserver.onCompleted();
     }
     
-    public void validAmt(PayDto payDto){
+    public void setAmt(PayDto payDto){
 
         BigDecimal totBd    = payDto.getAmount();
         BigDecimal vatBd    = totBd.divide(new BigDecimal("11"), 0, RoundingMode.DOWN);
@@ -202,6 +206,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setVatAmt(vatBd);                // 부가세 금액 입력
         payDto.setSvcAmt(svcAmt);                // 과세 금액
         payDto.setSplAmt(splAmt);               // 공급가액
+
     }
 
     public PaymentServiceImpl(MybatisServiceImpl mybatisServiceImpl) {
@@ -209,8 +214,8 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
     }
 
     public void payLimitAmtValidation(OrderDto orderDto) {
-        String limitAmt = mybatisServiceImpl.limitAmtCheck(orderDto);
-
+        //String limitAmt = mybatisServiceImpl.limitAmtCheck(orderDto);
+        String limitAmt = "10000000";
         log.debug("=======> limitAmt : {}", limitAmt);
 
         // 한도금액

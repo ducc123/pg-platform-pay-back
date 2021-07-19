@@ -2,13 +2,20 @@ package net.reappay.pg.payments.paymentsback.service;
 
 import lombok.RequiredArgsConstructor;
 import net.reappay.pg.payments.paymentsback.dao.MybatisDao;
+import net.reappay.pg.payments.paymentsback.dto.ApprDto;
 import net.reappay.pg.payments.paymentsback.dto.OrderDto;
 import net.reappay.pg.payments.paymentsback.dto.PayDto;
+import net.reappay.pg.payments.paymentsback.dto.UserDto;
+import net.reappay.pg.payments.paymentsback.entity.PayTerminalInfo;
+import net.reappay.pg.payments.paymentsback.entity.PayTidInfo;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
-public class MybatisServiceImpl implements MybatisService{
+public class MybatisServiceImpl {
 
     private final MybatisDao mybatisDao;
 
@@ -17,20 +24,29 @@ public class MybatisServiceImpl implements MybatisService{
         return tranSeq;
     }
 
-
-    public String findPgMerchNoUserId(String CustId){
-        String pgMerchNo = mybatisDao.findPgMerchNoUserId(CustId);
-        return pgMerchNo;
+    public String limitAmtCheck(OrderDto orderDto) {
+        String limitAmt = mybatisDao.limitAmtCheck(orderDto);
+        return limitAmt;
     }
 
-    public String findPgTidUserId(String CustId){
-        String PgTid = mybatisDao.findPgTidUserId(CustId);
-        return PgTid;
+    public UserDto findUserInfo(String CustId){
+        UserDto userDto = mybatisDao.findUserInfo(CustId);
+        return userDto;
     }
 
-    public String findUserSeqUserId(String CustId){
-        String UserSeq = mybatisDao.findUserSeqUserId(CustId);
-        return UserSeq;
+    public ApprDto findApprovalTranSeq(String TranSeq){
+        ApprDto apprDto= mybatisDao.findApprovalTranSeq(TranSeq);
+        return apprDto;
+    }
+
+    public PayTidInfo findPgTidInfo(OrderDto orderDto){
+        PayTidInfo payTidInfo= mybatisDao.findPgTidInfo(orderDto);
+        return payTidInfo;
+    }
+
+    public PayTerminalInfo findTerminal(OrderDto orderDto){
+        PayTerminalInfo payTerminalInfo= mybatisDao.findTerminal(orderDto);
+        return payTerminalInfo;
     }
 
     public void addOrder(OrderDto orderDto) {

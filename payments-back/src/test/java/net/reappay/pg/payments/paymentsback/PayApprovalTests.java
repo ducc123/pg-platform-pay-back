@@ -3,6 +3,7 @@ package net.reappay.pg.payments.paymentsback;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import net.reappay.pg.payments.paymentsback.proto.OrderRequest;
+import net.reappay.pg.payments.paymentsback.proto.OrderServiceGrpc;
 import net.reappay.pg.payments.paymentsback.proto.PaymentRequest;
 import net.reappay.pg.payments.paymentsback.proto.PaymentServiceGrpc;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ class PayApprovalTests {
                 .setCurrencyType("KRW")
                 .setStatus("O")
                 .setIssCode("11")
+                .setAquCode("12")
                 .setCavv("13")
                 .setXid("14")
                 .setEci("15")
@@ -58,6 +60,7 @@ class PayApprovalTests {
                 .setPoint3("")
                 .setPoint4("")
                 .setVanTransactionNo("37")
+                .setFiller("")
                 .setAuthType("39")
                 .setMPIPositionType("40")
                 .setMPIReUseType("1")

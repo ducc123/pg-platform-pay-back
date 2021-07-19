@@ -45,7 +45,7 @@ public class OrderDto {
     private Date tranDate;
     private Time tranTime;
 
-    private String resultMsg;
+    private String ResultMessage;
     private String resultCode;
 
     private String tranSeq;

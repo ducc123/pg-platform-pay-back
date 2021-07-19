@@ -15,6 +15,7 @@ import net.reappay.pg.payments.paymentsback.proto.*;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -33,20 +34,27 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
     private final MybatisServiceImpl mybatisServiceImpl;
     
     //주문처리 서비스@20210719
+    @Transactional
     @Override
     public void orderCall(OrderRequest request, StreamObserver<OrderResponse> responseObserver) {
 
         //기본 시작날짜시간 설정
-        Calendar cal = Calendar.getInstance();
+        Calendar cal            = Calendar.getInstance();
         SimpleDateFormat sdf    = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat sdf2   = new SimpleDateFormat("HH:mm:ss");
-        String datestr = sdf.format(cal.getTime());
-        String timestr = sdf2.format(cal.getTime());
+        String datestr          = sdf.format(cal.getTime());
+        String timestr          = sdf2.format(cal.getTime());
         
         log.debug("###인증결제 주문처리시작 ({} {})",datestr,timestr);
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         OrderDto orderDto       = modelMapper.map(request, OrderDto.class);
+
+        //PgMerchNo PgTid설정
+        String PgMerchNo        = "";
+        String PgTid            = "";
+        String ResultCode       = "0000";
+        String ResultMessage    = "주문이 정상완료 되었습니다.";
 
         //transeq 생성해서 저장
         String tranSeq = mybatisServiceImpl.getTranSeq();
@@ -56,20 +64,15 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         orderDto.setOrderDate(datestr);
         orderDto.setOrderTime(timestr);
         orderDto.setTranType("10");
-
-        UserDto userDto = mybatisServiceImpl.findUserInfo(orderDto.getCustId());
-        orderDto.setUserCate(userDto.getUserCate());
         orderDto.setCurrencyType("KRW");
-
-        //PgMerchNo PgTid설정
-        String PgMerchNo        = "";
-        String PgTid            = "";
-        String ResultCode       = "0000";
-        String ResultMessage    = "정상적으로 주문이 완료되었습니다.";
+        orderDto.setPayMethod(PayMethodEnum.CARD);
 
         try {
-            PgMerchNo               = userDto.getPgMerchNo();
-            PgTid                   = userDto.getPgTid();
+            UserDto userDto = mybatisServiceImpl.findUserInfo(orderDto.getCustId());
+            orderDto.setUserCate(userDto.getUserCate());
+
+            PgMerchNo           = userDto.getPgMerchNo();
+            PgTid               = userDto.getPgTid();
 
             orderDto.setPgMerchNo(PgMerchNo);
             orderDto.setPgTid(PgTid);
@@ -84,7 +87,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
 
         } catch (NullPointerException e) {
             ResultCode = "9999";
-            ResultMessage = "error : "+e.getMessage();
+            ResultMessage = "정상적인 회원정보가 아닙니다";
         }
         orderDto.setPgMerchNo(PgMerchNo);
         orderDto.setPgTid(PgTid);
@@ -97,6 +100,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             ResultCode = "9999";
             ResultMessage = "error : "+e.getMessage();
         }
+
         orderDto.setCustIp(cip);
 
         //한도체크 ing....
@@ -105,10 +109,13 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         //가맹점 주문정보 tb_approval 저장
         mybatisServiceImpl.addOrder(orderDto);
 
+        orderDto.setResultCode(ResultCode);
+        orderDto.setResultMessage(ResultMessage);
+
         //기본 response처리
         OrderResponse response  = OrderResponse.newBuilder()
-                .setResultCode(ResultCode)
-                .setResultMessage(ResultMessage)
+                .setResultCode(orderDto.getResultCode())
+                .setResultMessage(orderDto.getResultMessage())
                 .setTranSeq(tranSeq)
                 .setPgTid(PgTid)
                 .build();
@@ -116,34 +123,35 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         responseObserver.onNext(response);
         responseObserver.onCompleted();
 
-        Calendar cal2 = Calendar.getInstance();
-        SimpleDateFormat sdf11    = new SimpleDateFormat("yyyy-MM-dd");
-        SimpleDateFormat sdf12   = new SimpleDateFormat("HH:mm:ss");
+        Calendar cal2          = Calendar.getInstance();
+        SimpleDateFormat sdf11 = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat sdf12 = new SimpleDateFormat("HH:mm:ss");
         String datestr1 = sdf11.format(cal2.getTime());
         String timestr1 = sdf12.format(cal2.getTime());
         log.debug("###인증결제 주문처리끝 ({} {})",datestr1,timestr1);
     }
 
     //승인처리 서비스
+    @Transactional
     @Override
     public void paymentCall(PaymentRequest request, StreamObserver<PaymentResponse> responseObserver) {
         
         //기본 시작날짜시간 설정
-        Calendar cal = Calendar.getInstance();
+        Calendar cal            = Calendar.getInstance();
         SimpleDateFormat sdf    = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat sdf2   = new SimpleDateFormat("HH:mm:ss");
         SimpleDateFormat sdf3   = new SimpleDateFormat("yyMM");
-        String datestr = sdf.format(cal.getTime());
-        String timestr = sdf2.format(cal.getTime());
-        String cardpgdatestr = sdf3.format(cal.getTime());
+        String datestr          = sdf.format(cal.getTime());
+        String timestr          = sdf2.format(cal.getTime());
+        String cardpgdatestr    = sdf3.format(cal.getTime());
 
         log.debug("###인증결제 승인처리시작 ({} {})",datestr,timestr);
         String ResultCode       = "0000";
         String ResultMessage    = "승인이 완료되었습니다.";
 
-        ModelMapper modelMapper  = new ModelMapper();
+        ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-        PayDto payDto            = modelMapper.map(request, PayDto.class);
+        PayDto payDto           = modelMapper.map(request, PayDto.class);
 
         //중복승인인지 확인함 refresh 되는 상황을 처리하기 위해
         int tranSeqCount = mybatisServiceImpl.countApprovalTranSeq(payDto.getTranSeq());
@@ -254,14 +262,15 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         responseObserver.onNext(response);
         responseObserver.onCompleted();
 
-        Calendar cal2 = Calendar.getInstance();
-        SimpleDateFormat sdf11    = new SimpleDateFormat("yyyy-MM-dd");
-        SimpleDateFormat sdf12   = new SimpleDateFormat("HH:mm:ss");
-        String datestr1 = sdf11.format(cal2.getTime());
-        String timestr1 = sdf12.format(cal2.getTime());
+        Calendar cal2           = Calendar.getInstance();
+        SimpleDateFormat sdf11  = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat sdf12  = new SimpleDateFormat("HH:mm:ss");
+        String datestr1         = sdf11.format(cal2.getTime());
+        String timestr1         = sdf12.format(cal2.getTime());
         log.debug("###인증결제 승인처리끝 ({} {})",datestr1,timestr1);
     }
 
+    @Transactional
     public void setAmt(PayDto payDto){
 
         BigDecimal totBd    = payDto.getAmount();
@@ -280,9 +289,13 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         this.mybatisServiceImpl = mybatisServiceImpl;
     }
 
+    @Transactional
     public void payLimitAmtValidation(OrderDto orderDto) {
         //String limitAmt = mybatisServiceImpl.limitAmtCheck(orderDto);
         String limitAmt = "0";
+        String ResultCode = "";
+        String ResultMessage = "";
+
         log.debug("=======> limitAmt : {}", limitAmt);
 
         // 한도금액
@@ -303,21 +316,29 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                 // 결제 금액이 건 별 결제 한도보다 많은 경우
                 if (payAmt > perLimitAmt) {
                     log.error("### "+3003 + " : 건별 결제한도를 초과하였습니다.");
-                    throw new PgRequestException("건별 결제한도를 초과하였습니다.", 3003);
+                    ResultCode = "3003";
+                    ResultMessage = "건별 결제한도를 초과하였습니다";
                 }
             }
         } else {
 
             if (limitAmt=="1") {
                 log.error("### "+3004 + " : 월 결제한도를 초과하였습니다");
-                throw new PgRequestException("월 결제한도를 초과하였습니다.", 3004);
+                ResultCode = "3004";
+                ResultMessage = "월 결제한도를 초과하였습니다";
             } else if (limitAmt=="2") {
                 log.error("### "+3005 + " : 년 결제한도를 초과하였습니다.");
-                throw new PgRequestException("년 결제한도를 초과하였습니다.", 3005);
+                ResultCode = "3005";
+                ResultMessage = "년 결제한도를 초과하였습니다";
             } else {
                 log.error("### "+3006 + " : 결제한도를 초과하였습니다.");
-                throw new PgRequestException("결제한도를 초과하였습니다.", 3006);
+                ResultCode = "3006";
+                ResultMessage = "결제한도를 초과하였습니다.";
             }
+
+            orderDto.setResultCode(ResultCode);
+            orderDto.setResultMessage(ResultMessage);
+
         }
 
     }

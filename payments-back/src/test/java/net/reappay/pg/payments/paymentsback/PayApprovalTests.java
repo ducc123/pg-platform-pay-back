@@ -2,8 +2,6 @@ package net.reappay.pg.payments.paymentsback;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import net.reappay.pg.payments.paymentsback.proto.OrderRequest;
-import net.reappay.pg.payments.paymentsback.proto.OrderServiceGrpc;
 import net.reappay.pg.payments.paymentsback.proto.PaymentRequest;
 import net.reappay.pg.payments.paymentsback.proto.PaymentServiceGrpc;
 import org.junit.jupiter.api.Test;

@@ -2,7 +2,6 @@ package net.reappay.pg.payments.paymentsback;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import net.reappay.pg.payments.paymentsback.proto.OrderResponse;
 import net.reappay.pg.payments.paymentsback.proto.PaymentRequest;
 import net.reappay.pg.payments.paymentsback.proto.PaymentResponse;
 import net.reappay.pg.payments.paymentsback.proto.PaymentServiceGrpc;

@@ -336,8 +336,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                 ResultMessage = "결제한도를 초과하였습니다.";
             }
 
-            orderDto.setResultCode(ResultCode);
-            orderDto.setResultMessage(ResultMessage);
+            throw new PgRequestException("error : "+ResultMessage,ResultCode);
 
         }
 

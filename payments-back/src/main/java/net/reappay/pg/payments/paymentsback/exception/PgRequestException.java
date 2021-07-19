@@ -4,15 +4,15 @@ import java.io.Serializable;
 
 public class PgRequestException extends RuntimeException implements Serializable {
 
-    private Integer errorCode = 1001;
+    private String errorCode = "1001";
 
-    public PgRequestException(String message, Integer errorCode) {
+    public PgRequestException(String message, String errorCode) {
 
         super(message);
         this.errorCode = errorCode;
     }
 
-    public Integer getErrorCode() {
+    public String getErrorCode() {
         return errorCode;
     }
 }

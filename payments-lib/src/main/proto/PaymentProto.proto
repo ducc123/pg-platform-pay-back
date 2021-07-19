@@ -3,173 +3,112 @@ option java_multiple_files = true;
 package net.reappay.pg.payments.paymentsback.proto;
 
 message OrderRequest {
-  string orderNumber                = 1;  // 주문번호 (가맹점에서 생성)
-  string goodsName                  = 2;  // 상품명
-  string goodsCode                  = 3;  // 상품코드
-  string productType                = 4;  // 상품유형(실물, 디지털)
-  optional string custId            = 5;  // 주문자 ID
-  optional string custName          = 6;  // 주문자 명
-  optional string custEmail         = 7;  // 주문자 이메일
-  optional string custPhone         = 8;  // 주문자 전화번호
-  string custIp                     = 9;  // 주문자 IP
-  optional string expDate           = 10; // 신용카드 유효기간
-  optional string installment       = 11; // 할부
-  int32 totAmt                      = 12; // 결제금액
-  optional string certiType         = 13; // 인증구분
-  optional string pgMerchNo         = 14; // 가맹점번호
-  optional string pgTid             = 15; // UID (가맹점당 여러개의 결제수단)
-  string payMethod                  = 16; // 결제방법
-  optional string tranSeq           = 17; // reappay 거래번호 (PG에서 생성)
-  int32 vatAmt                      = 18; // 세액
-  string orderDate                  = 19; // 주문일자
-  string orderTime                  = 20; // 주문시간
-  string returnUrl                  = 21; // 가맹점 DB처리 용 URL
-  string successUrl                 = 22; // 가맹점 화면처리 성공 URL
-  string failtureUrl                = 23; // 가맹점 화면처리 실패 URL
-  optional string etcData1          = 24; // 기타 요청데이터
-  optional string etcData2          = 25; // 기타 요청데이터
-  optional string etcData3          = 26; // 기타 요청데이터
-  optional string etcData4          = 27; // 기타 요청데이터
-  optional string etcData5          = 28; // 기타 요청데이터
+  // -- 가맹점정보
+  string pgMerchNo                  = 1;  // 립페이 가맹점 아이디
+  string pgMerchName                = 2;  // 립페이 가맹점 이름
+  string storeUrl                   = 3;  // 립페이 가맹점 홈페이지 url
+  string storeBizNo                 = 4;  // 립페이 가맹점 사업자등록번호
+
+  // -- 주문정보
+  string orderSeq                   = 5;  // 주문번호 (가맹점에서 생성)
+  string tranDt                     = 6;  // 주문일자
+  string tranTm                     = 7;  // 주문시간
+  string productType                = 8;  // 상품유형(실물, 디지털)
+  string goodsName                  = 9;  // 상품명
+  string goodsCode                  = 10; // 상품코드
+  int32 totAmt                      = 11; // 결제금액
+  int32 vatAmt                      = 12; // 세액
+  string currencyType               = 13; // 통화구분 (KRW: 한국원화, USD: 미국달러화)
+
+  // -- 고객정보
+  optional string custId            = 14; // 주문자 ID
+  optional string custName          = 15; // 주문자 명
+  optional string custEmail         = 16; // 주문자 이메일
+  optional string custPhone         = 17; // 주문자 전화번호
+  string custIp                     = 18; // 주문자 IP
+
+  // -- 결제정보
+  string payMethod                  = 19; // 결제방법 (신용카드'CARD', 계좌이체(BANK).... 등)
+  optional string cardNo            = 20; // 카드번호
+  optional string expDate           = 21; // 신용카드 유효기간
+  optional string installment       = 22; // 할부개월
+  optional string certiType         = 23; // 인증구분 (ISP, MPI)
+
+  // -- 응답수신 URLs
+  string returnUrl                  = 24; // 가맹점 DB처리 URL
+  string successUrl                 = 25; // 가맹점 화면처리 성공 URL
+  string failtureUrl                = 26; // 가맹점 화면처리 실패 URL
 }
 
 message OrderResponse {
-  string orderNumber                = 1;  // 주문번호 (가맹점에서 생성)
-  string goodsName                  = 2;  // 상품명
-  string goodsCode                  = 3;  // 상품코드
-  string productType                = 4;  // 상품유형(실물, 디지털)
-  optional string custId            = 5;  // 주문자 ID
-  optional string custName          = 6;  // 주문자 명
-  optional string custEmail         = 7;  // 주문자 이메일
-  optional string custPhone         = 8;  // 주문자 전화번호
-  string custIp                     = 9;  // 주문자 IP
-  optional string expDate           = 10; // 신용카드 유효기간
-  optional string installment       = 11; // 할부
-  int32 totAmt                      = 12; // 결제금액
-  optional string certiType         = 13; // 인증구분
-  optional string pgMerchNo         = 14; // 가맹점번호
-  optional string pgTid             = 15; // UID (가맹점당 여러개의 결제수단)
-  string payMethod                  = 16; // 결제방법
-  optional string tranSeq           = 17; // reappay 거래번호 (PG에서 생성)
-  int32 vatAmt                      = 18; // 세액
-  string orderDate                  = 19; // 주문일자
-  string orderTime                  = 20; // 주문시간
-  string returnUrl                  = 21; // 가맹점 DB처리 용 URL
-  string successUrl                 = 22; // 가맹점 화면처리 성공 URL
-  string failtureUrl                = 23; // 가맹점 화면처리 실패 URL
-  optional string etcData1          = 24 ; // 기타 요청데이터
-  optional string etcData2          = 25; // 기타 요청데이터
-  optional string etcData3          = 26; // 기타 요청데이터
-  optional string etcData4          = 27; // 기타 요청데이터
-  optional string etcData5          = 28; // 기타 요청데이터
+  // -- 응답시 추가 되는 주문번호
+  string resultCode                 = 1;  // 유효성검사 (0000: 결제 진행, 나머시: 오류 )
+  string resultMessage              = 2;  // 오류메시지
+  string tranSeq                    = 3;  // reappay 거래번호 (PG에서 생성)
+  string pgTid                      = 4;  // UID (가맹점당 여러개의 결제수단)
 }
 
 message PaymentRequest {
-  string apprType         = 1;  // 승인유형
-  string certiType        = 2;  // 인증유형
-  string authty           = 3;  // ?
-  string interest         = 4;  // ?
-  string passwd           = 5;  // 비밀번호?
-  string lastTidNum       = 6;  // ?
-  string currencyType     = 7;  // 환구분 WON
-  string status           = 8;  // 상태
-  string ipAddr           = 9;  // IP
-  string tradeDate        = 10; // 거래일자
-  string tradeTime        = 11; // 거래시간
-  string issCode          = 12; // 신용카드 발급사
-  string acqCode          = 13; // 신용카드 매입사
-  string cavv             = 14; //
-  string xid              = 15; //
-  string eci              = 16; //
-  string kbAppOtp         = 17; //
-  string KVPNOINT         = 18; //
-  string KVPQUOTA         = 19; //
-  string KVPPGID          = 20; //
-  string KVPCARDCODE      = 21; //
-  string KVPSESSIONKEY    = 22; //
-  string KVPENCDATA       = 23; //
-  string authNo           = 24; // 승인번호
-  string message1         = 25; //
-  string message2         = 26; //
-  string cardNo           = 27; // 카드번호(Masking)
-  string cardCode         = 28; // 카드코드
-  string expDate          = 29; // 유효기간
-  string installment      = 30; // 할부개월
-  string amount           = 31; // 결제금액
-  string merchantNo       = 32; //
-  string authSendType     = 33; //
-  string approvalSendType = 34; //
-  string point1           = 35; //
-  string point2           = 36; //
-  string point3           = 37; //
-  string point4           = 38; //
-  string vanTransactionNo = 39; //
-  string authType         = 40; // ?
-  string MPIPositionType  = 41; //
-  string MPIReUseType     = 42; //
-  string EncData          = 43; //
-  string tranSeq          = 44; // reappay 거래번호
-  string resultCode       = 45; // 승인결과 코드
-  string resultMsg        = 46; // 승인결과 메시지
-  string etcData1         = 47; // 기타 요청데이터
-  string etcData2         = 48; // 기타 요청데이터
-  string etcData3         = 49; // 기타 요청데이터
-  string etcData4         = 50; // 기타 요청데이터
-  string etcData5         = 51; // 기타 요청데이터
+  string pgMerchNo        = 1;  // 립페이 가맹점 아이디
+  string orderSeq         = 2;  // 주문번호 (가맹점에서 생성)
+  string pgTid            = 3;  // UID (가맹점당 여러개의 결제수단)
+  string tranSeq          = 4; // reappay 거래번호
+  string apprType         = 5;  // 승인유형
+  string certiType        = 6;  // 인증유형
+  string authty           = 7;  // ?
+  string interest         = 8;  // 무이자여부?
+  string passwd           = 9;  // 비밀번호?
+  string lastTidNum       = 10;  // ?
+  string currencyType     = 11;  // 환구분 WON
+  string status           = 12;  // 상태
+  string ipAddr           = 13;  // IP
+  string tradeDate        = 14; // 거래일자
+  string tradeTime        = 15; // 거래시간
+  string issCode          = 16; // 신용카드 발급사
+  string acqCode          = 17; // 신용카드 매입사
+  string cavv             = 18; //
+  string xid              = 19; //
+  string eci              = 20; //
+  string kbAppOtp         = 21; //
+  string KVPNOINT         = 22; //
+  string KVPQUOTA         = 23; //
+  string KVPPGID          = 24; //
+  string KVPCARDCODE      = 25; //
+  string KVPSESSIONKEY    = 26; //
+  string KVPENCDATA       = 27; //
+  string authNo           = 28; // 승인번호
+  string message1         = 29; //
+  string message2         = 30; //
+  string cardNo           = 31; // 카드번호(Masking)
+  string cardCode         = 32; // 카드코드
+  string expDate          = 33; // 유효기간
+  string installment      = 34; // 할부개월
+  string amount           = 35; // 결제금액
+  string merchantNo       = 36; //
+  string authSendType     = 37; //
+  string approvalSendType = 38; //
+  string point1           = 39; //
+  string point2           = 40; //
+  string point3           = 41; //
+  string point4           = 42; //
+  string vanTransactionNo = 43; //
+  string authType         = 44; // ?
+  string MPIPositionType  = 45; //
+  string MPIReUseType     = 46; //
+  string EncData          = 47; //
 }
 
 message PaymentResponse {
-  string apprType         = 1;  // 승인유형
-  string certiType        = 2;  // 인증유형
-  string authty           = 3;  // ?
-  string interest         = 4;  // ?
-  string passwd           = 5;  // 비밀번호?
-  string lastTidNum       = 6;  // ?
-  string currencyType     = 7;  // 환구분 WON
-  string status           = 8;  // 상태
-  string ipAddr           = 9;  // IP
-  string tradeDate        = 10; // 거래일자
-  string tradeTime        = 11; // 거래시간
-  string issCode          = 12; // 신용카드 발급사
-  string acqCode          = 13; // 신용카드 매입사
-  string cavv             = 14; //
-  string xid              = 15; //
-  string eci              = 16; //
-  string kbAppOtp         = 17; //
-  string KVPNOINT         = 18; //
-  string KVPQUOTA         = 19; //
-  string KVPPGID          = 20; //
-  string KVPCARDCODE      = 21; //
-  string KVPSESSIONKEY    = 22; //
-  string KVPENCDATA       = 23; //
-  string authNo           = 24; // 승인번호
-  string message1         = 25; //
-  string message2         = 26; //
-  string cardNo           = 27; // 카드번호(Masking)
-  string cardCode         = 28; // 카드코드
-  string expDate          = 29; // 유효기간
-  string installment      = 30; // 할부개월
-  string amount           = 31; // 결제금액
-  string merchantNo       = 32; //
-  string authSendType     = 33; //
-  string approvalSendType = 34; //
-  string point1           = 35; //
-  string point2           = 36; //
-  string point3           = 37; //
-  string point4           = 38; //
-  string vanTransactionNo = 39; //
-  string authType         = 40; // ?
-  string MPIPositionType  = 41; //
-  string MPIReUseType     = 42; //
-  string EncData          = 43; //
-  string tranSeq          = 44; // reappay 거래번호
-  string resultCode       = 45; // 승인결과 코드
-  string resultMsg        = 46; // 승인결과 메시지
-  string etcData1         = 47; // 기타 요청데이터
-  string etcData2         = 48; // 기타 요청데이터
-  string etcData3         = 49; // 기타 요청데이터
-  string etcData4         = 50; // 기타 요청데이터
-  string etcData5         = 51; // 기타 요청데이터
+  string resultCode       = 1;  // 승인결과 (0000: 성공, 나머지: 실패)
+  string resultMessage    = 2;  // 승인결과 메시지
+  string apprDt           = 3;  // 승인일자
+  string apprTm           = 4;  // 승인시간
+  string apprNo           = 5;  // 승인번호
+  string issCd            = 6;  // 카드사코드
+  string issNm            = 7;  // 카드사이름
+  int64 payAmt            = 8;  // 결제금액
+  string pgTidPayAmt      = 9; // 가맹점 지급액
+  string pgTidCommision   = 10;  // 가맹점 수수료
 }
 
 service PaymentService {
@@ -177,5 +116,6 @@ service PaymentService {
   rpc orderCall (OrderRequest) returns (OrderResponse);
 
   // 결제요청 = 인증이 된 후 거래를 확정하는 프로세스. (거래테이블에 저장)
+  // 오류 발생시 오류테이블에 저장
   rpc paymentCall (PaymentRequest) returns (PaymentResponse);
 }

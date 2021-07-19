@@ -92,5 +92,13 @@ public class PayDto {
     private String tranStatus;
     private Enum payMethod;
     private String storeId;
+    private String codeNm;
+    private String cardIssuNm;
+    private int notiTryCnt;
+    private String notiStatus;
+    private int tranChkFlag;
+    private int acqrChkFlag;
+    private String billkeyYn;
+
 
 }

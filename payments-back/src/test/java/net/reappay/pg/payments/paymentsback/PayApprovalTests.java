@@ -2,7 +2,9 @@ package net.reappay.pg.payments.paymentsback;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import net.reappay.pg.payments.paymentsback.proto.OrderResponse;
 import net.reappay.pg.payments.paymentsback.proto.PaymentRequest;
+import net.reappay.pg.payments.paymentsback.proto.PaymentResponse;
 import net.reappay.pg.payments.paymentsback.proto.PaymentServiceGrpc;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,7 +22,7 @@ class PayApprovalTests {
 
         PaymentServiceGrpc.PaymentServiceBlockingStub pays = PaymentServiceGrpc.newBlockingStub(channel);
 
-        pays.paymentCall(PaymentRequest.newBuilder()
+        PaymentResponse paymentProto = pays.paymentCall(PaymentRequest.newBuilder()
                 .setTranSeq("2021071517401600006746")
                 .setApprType("Order")
                 .setCertiType("a")
@@ -41,13 +43,13 @@ class PayApprovalTests {
                 .setKVPCARDCODE("20")
                 .setKVPSESSIONKEY("21")
                 .setKVPENCDATA("22")
-                .setAuthNo("23")
-                .setMessage1("24")
-                .setMessage2("25")
-                .setCardNo("11112222333344444")
-                .setCardCode("11")
-                .setExpDate("27")
-                .setInstallment("12")
+                .setAuthNo("12345678")
+                .setMessage1("Message1")
+                .setMessage2("Message2")
+                .setCardNo("960172")
+                .setCardCode("026")
+                .setExpDate("2112")
+                .setInstallment("00")
                 .setAmount("1000000000")
                 .setMerchantNo("30")
                 .setAuthSendType("31")
@@ -63,6 +65,17 @@ class PayApprovalTests {
                 .setEncData("EncData encriptString~~")
                 .build()
         );
+
+        System.out.println("ResultCode = "+     paymentProto.getResultCode());                        //결과코드
+        System.out.println("ResultMessage = "+  paymentProto.getResultMessage());                     //결과메시지
+        System.out.println("ApprDt = "+         paymentProto.getApprDt());                            //승인날짜
+        System.out.println("ApprTm = "+         paymentProto.getApprTm());                            //승인시간
+        System.out.println("ApprNo = "+         paymentProto.getApprNo());                            //승인번호
+        System.out.println("IssCd = "+          paymentProto.getIssCd());                             //카드사코드
+        System.out.println("IssNm = "+          paymentProto.getIssNm());                             //카드사이름
+        System.out.println("PayAmt = "+         paymentProto.getPayAmt());                            //결제금액
+        System.out.println("PgTidPayAmt = "+    paymentProto.getPgTidPayAmt());                       //가맹점 지급액
+        System.out.println("PgTidCommision = "+ paymentProto.getPgTidCommision());                    //가맹점 수수료
 
         channel.shutdown();
 

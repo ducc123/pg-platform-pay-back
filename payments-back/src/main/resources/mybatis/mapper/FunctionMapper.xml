@@ -118,5 +118,14 @@
             LIMIT 1
     </select>
 
+    <select id="findCardIssCdByCardNoString"
+            parameterType="payDto"
+            resultType="map">
+        /** 카드 ISS_CD ,ISS_NM 조회 **/
+        SELECT A.ISS_CD,B.CODE_NM
+        FROM tb_cardbin A
+                 INNER JOIN tb_code_detail b ON b.main_code = 'ISS_CD' AND B.DETAIL_CODE = A.ISS_CD
+        WHERE CARDBIN = #{cardNo}
+    </select>
 
 </mapper>

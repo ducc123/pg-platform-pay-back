@@ -10,6 +10,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 
 
 @Mapper
@@ -28,6 +29,7 @@ public interface MybatisDao {
      * */
     String limitAmtCheck(OrderDto orderDto) throws DataAccessException;
 
+    Map<String, String> findCardIssCdByCardNoString(PayDto payDto) throws DataAccessException;
     /**
      * 주문정보 가지고 오기
      * @param TranSeq

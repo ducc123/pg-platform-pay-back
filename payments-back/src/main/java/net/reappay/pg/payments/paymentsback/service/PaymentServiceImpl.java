@@ -32,7 +32,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
     @Autowired
     private final MybatisServiceImpl mybatisServiceImpl;
     
-    //주문처리 서비스
+    //주문처리 서비스@20210719
     @Override
     public void orderCall(OrderRequest request, StreamObserver<OrderResponse> responseObserver) {
 

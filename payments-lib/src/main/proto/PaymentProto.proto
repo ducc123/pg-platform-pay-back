@@ -2,6 +2,8 @@ syntax = "proto3";
 option java_multiple_files = true;
 package net.reappay.pg.payments.paymentsback.proto;
 
+import "google/protobuf/empty.proto";
+
 message OrderRequest {
   // -- 가맹점정보
   string pgMerchNo                  = 1;  // 립페이 가맹점 아이디
@@ -101,14 +103,20 @@ message PaymentRequest {
 message PaymentResponse {
   string resultCode       = 1;  // 승인결과 (0000: 성공, 나머지: 실패)
   string resultMessage    = 2;  // 승인결과 메시지
-  string apprDt           = 3;  // 승인일자
-  string apprTm           = 4;  // 승인시간
-  string apprNo           = 5;  // 승인번호
-  string issCd            = 6;  // 카드사코드
-  string issNm            = 7;  // 카드사이름
-  int64 payAmt            = 8;  // 결제금액
-  string pgTidPayAmt      = 9; // 가맹점 지급액
-  string pgTidCommision   = 10;  // 가맹점 수수료
+  string tranSeq          = 3; // reappay 거래번호
+  string apprDt           = 4;  // 승인일자
+  string apprTm           = 5;  // 승인시간
+  string apprNo           = 6;  // 승인번호
+  string issCd            = 7;  // 카드사코드
+  string issNm            = 8;  // 카드사이름
+  int64 payAmt            = 9;  // 결제금액
+  string pgTidPayAmt      = 10; // 가맹점 지급액
+  string pgTidCommision   = 11;  // 가맹점 수수료
+}
+
+message NotiResultRequest {
+  string tranSeq          = 1;  // reappay 거래번호
+  bool notiStatus         = 2;  // 결제통보 성공여부
 }
 
 service PaymentService {
@@ -118,4 +126,7 @@ service PaymentService {
   // 결제요청 = 인증이 된 후 거래를 확정하는 프로세스. (거래테이블에 저장)
   // 오류 발생시 오류테이블에 저장
   rpc paymentCall (PaymentRequest) returns (PaymentResponse);
+
+  // 결제결과를 가맹점 DB처리 URL에 보낸결과 서버에 전송..
+  rpc notiResultCall (NotiResultRequest) returns (google.protobuf.Empty);
 }

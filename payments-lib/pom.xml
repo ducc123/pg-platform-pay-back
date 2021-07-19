@@ -2,16 +2,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
-        <groupId>net.reappay.pg.payments</groupId>
-        <artifactId>reappaypg-payments</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.5.2</version>
+        <relativePath/> <!-- lookup parent from repository -->
     </parent>
+
     <groupId>net.reappay.pg.payments</groupId>
     <artifactId>payments-lib</artifactId>
     <version>1.0.0</version>
     <name>reappaypg-payments-lib</name>
-    <description>Demo project for Spring Boot</description>
+    <description>승인결제 Frontend 와 Backend 간의 통신</description>
     <packaging>jar</packaging>
     <properties>
         <java.version>11</java.version>

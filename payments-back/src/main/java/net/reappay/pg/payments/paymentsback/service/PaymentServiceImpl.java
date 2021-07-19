@@ -10,6 +10,7 @@ import net.reappay.pg.payments.paymentsback.dto.UserDto;
 import net.reappay.pg.payments.paymentsback.entity.PayTerminalInfo;
 import net.reappay.pg.payments.paymentsback.entity.PayTidInfo;
 import net.reappay.pg.payments.paymentsback.enums.PayMethodEnum;
+import net.reappay.pg.payments.paymentsback.exception.PgRequestException;
 import net.reappay.pg.payments.paymentsback.proto.*;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -75,7 +76,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             orderDto.setStoreId(payTerminalInfo.getTerminalNo());
 
         } catch (NullPointerException e) {
-            e.printStackTrace();
+            throw new PgRequestException("error : "+e.getMessage(),999);
         }
         orderDto.setPgMerchNo(PgMerchNo);
         orderDto.setPgTid(PgTid);
@@ -85,7 +86,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         try {
             cip = Inet4Address.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
-            e.printStackTrace();
+            throw new PgRequestException("error : "+e.getMessage(),999);
         }
         orderDto.setCustIp(cip);
 
@@ -149,7 +150,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         try {
             cip = Inet4Address.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
-            e.printStackTrace();
+            throw new PgRequestException("error : "+e.getMessage(),999);
         }
         payDto.setIpAddr(cip);
 
@@ -230,20 +231,20 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                 // 결제 금액이 건 별 결제 한도보다 많은 경우
                 if (payAmt > perLimitAmt) {
                     log.error("### "+3003 + " : 건별 결제한도를 초과하였습니다.");
-                    //throw new InvalidPayAmtException("건별 결제한도를 초과하였습니다.", 3003);
+                    throw new PgRequestException("건별 결제한도를 초과하였습니다.", 3003);
                 }
             }
         } else {
 
             if (limitAmt=="1") {
                 log.error("### "+3004 + " : 월 결제한도를 초과하였습니다");
-                //throw new InvalidPayAmtException("월 결제한도를 초과하였습니다.", 3004);
+                throw new PgRequestException("월 결제한도를 초과하였습니다.", 3004);
             } else if (limitAmt=="2") {
                 log.error("### "+3005 + " : 년 결제한도를 초과하였습니다.");
-                //throw new InvalidPayAmtException("년 결제한도를 초과하였습니다.", 3005);
+                throw new PgRequestException("년 결제한도를 초과하였습니다.", 3005);
             } else {
                 log.error("### "+3006 + " : 결제한도를 초과하였습니다.");
-                //throw new InvalidPayAmtException("결제한도를 초과하였습니다.", 3006);
+                throw new PgRequestException("결제한도를 초과하였습니다.", 3006);
             }
         }
 

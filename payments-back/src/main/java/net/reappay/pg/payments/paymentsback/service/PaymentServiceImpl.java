@@ -51,84 +51,169 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         OrderDto orderDto       = modelMapper.map(request, OrderDto.class);
 
         //PgMerchNo PgTid설정
-        String PgMerchNo        = "";
-        String PgTid            = "";
-        String ResultCode       = "0000";
-        String ResultMessage    = "주문이 정상완료 되었습니다.";
+        String PgMerchNo = "";
+        String PgTid = "";
+        String ResultCode = "0000";
+        String ResultMessage = "정상적으로 주문이 완료되었습니다.";
 
-        //transeq 생성해서 저장
-        String tranSeq = mybatisServiceImpl.getTranSeq();
-        orderDto.setTranSeq(tranSeq);
+        if (orderDto.getCustId().isEmpty()){
+            ResultCode       = "9999";
+            ResultMessage    = "회원아이디를 확인해주세요.";
 
-        //주문일 주문시간설정
-        orderDto.setOrderDate(datestr);
-        orderDto.setOrderTime(timestr);
-        orderDto.setTranType("10");
-        orderDto.setCurrencyType("KRW");
-        orderDto.setPayMethod(PayMethodEnum.CARD);
+            //결과코드 , 메시지 설정
+            orderDto.setResultCode(ResultCode);
+            orderDto.setResultMessage(ResultMessage);
 
-        try {
-            UserDto userDto = mybatisServiceImpl.findUserInfo(orderDto.getCustId());
-            orderDto.setUserCate(userDto.getUserCate());
+            //기본 response처리
+            OrderResponse response = OrderResponse.newBuilder()
+                    .setResultCode(orderDto.getResultCode())
+                    .setResultMessage(orderDto.getResultMessage())
+                    .build();
 
-            PgMerchNo           = userDto.getPgMerchNo();
-            PgTid               = userDto.getPgTid();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } else if (orderDto.getGoodsName().isEmpty()){
+            ResultCode       = "9999";
+            ResultMessage    = "상품명을 입력해주세요.";
 
-            orderDto.setPgMerchNo(PgMerchNo);
-            orderDto.setPgTid(PgTid);
-            log.info("PgMerchNo============="+  PgMerchNo);
-            log.info("PgTid============="+      PgTid);
-            PayTidInfo payTidInfo = mybatisServiceImpl.findPgTidInfo(orderDto);
-            orderDto.setPayMtdSeq(payTidInfo.getPayMtdSeq());
+            //결과코드 , 메시지 설정
+            orderDto.setResultCode(ResultCode);
+            orderDto.setResultMessage(ResultMessage);
 
-            //터미널 정보가져오기
-            PayTerminalInfo payTerminalInfo = mybatisServiceImpl.findTerminal(orderDto);
-            orderDto.setStoreId(payTerminalInfo.getTerminalNo());
+            //기본 response처리
+            OrderResponse response = OrderResponse.newBuilder()
+                    .setResultCode(orderDto.getResultCode())
+                    .setResultMessage(orderDto.getResultMessage())
+                    .build();
 
-        } catch (NullPointerException e) {
-            ResultCode = "9999";
-            ResultMessage = "정상적인 회원정보가 아닙니다";
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } else if (orderDto.getTotAmt().toString().isEmpty() || orderDto.getTotAmt()<100){
+            ResultCode       = "9999";
+            ResultMessage    = "결제금액을 입력해주세요.";
+
+            //결과코드 , 메시지 설정
+            orderDto.setResultCode(ResultCode);
+            orderDto.setResultMessage(ResultMessage);
+
+            //기본 response처리
+            OrderResponse response = OrderResponse.newBuilder()
+                    .setResultCode(orderDto.getResultCode())
+                    .setResultMessage(orderDto.getResultMessage())
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } else if (orderDto.getOrderSeq().isEmpty()){
+            ResultCode       = "9999";
+            ResultMessage    = "주문번호를 입력해주세요.";
+
+            //결과코드 , 메시지 설정
+            orderDto.setResultCode(ResultCode);
+            orderDto.setResultMessage(ResultMessage);
+
+            //기본 response처리
+            OrderResponse response = OrderResponse.newBuilder()
+                    .setResultCode(orderDto.getResultCode())
+                    .setResultMessage(orderDto.getResultMessage())
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } else if (orderDto.getOrderSeq().isEmpty()){
+            ResultCode       = "9999";
+            ResultMessage    = "주문번호를 입력해주세요.";
+
+            //결과코드 , 메시지 설정
+            orderDto.setResultCode(ResultCode);
+            orderDto.setResultMessage(ResultMessage);
+
+            //기본 response처리
+            OrderResponse response = OrderResponse.newBuilder()
+                    .setResultCode(orderDto.getResultCode())
+                    .setResultMessage(orderDto.getResultMessage())
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } else {
+
+            //transeq 생성해서 저장
+            String tranSeq = mybatisServiceImpl.getTranSeq();
+            orderDto.setTranSeq(tranSeq);
+
+            //주문일 주문시간설정
+            orderDto.setOrderDate(datestr);
+            orderDto.setOrderTime(timestr);
+            orderDto.setTranType("10");
+            orderDto.setCurrencyType("KRW");
+            orderDto.setPayMethod(PayMethodEnum.CARD);
+
+            try {
+                //회원정보 가져오기
+                UserDto userDto = mybatisServiceImpl.findUserInfo(orderDto.getCustId());
+                orderDto.setUserCate(userDto.getUserCate());
+
+                PgMerchNo = userDto.getPgMerchNo();
+                PgTid = userDto.getPgTid();
+
+                orderDto.setPgMerchNo(PgMerchNo);
+                orderDto.setPgTid(PgTid);
+                log.info("PgMerchNo=============" + PgMerchNo);
+                log.info("PgTid=============" + PgTid);
+                PayTidInfo payTidInfo = mybatisServiceImpl.findPgTidInfo(orderDto);
+                orderDto.setPayMtdSeq(payTidInfo.getPayMtdSeq());
+
+                //터미널 정보가져오기
+                PayTerminalInfo payTerminalInfo = mybatisServiceImpl.findTerminal(orderDto);
+                orderDto.setStoreId(payTerminalInfo.getTerminalNo());
+
+                orderDto.setPgMerchNo(PgMerchNo);
+                orderDto.setPgTid(PgTid);
+
+            } catch (NullPointerException e) {
+                ResultCode = "9999";
+                ResultMessage = "정상적인 회원정보가 아닙니다";
+            }
+
+            //클라이언트 아이피정보 설정
+            String cip = null;
+            try {
+                cip = Inet4Address.getLocalHost().getHostAddress();
+                orderDto.setCustIp(cip);
+            } catch (UnknownHostException e) {
+                ResultCode = "9999";
+                ResultMessage = "error : " + e.getMessage();
+            }
+
+            //한도체크 ing....
+            payLimitAmtValidation(orderDto);
+
+            //가맹점 주문정보 tb_approval 저장
+            mybatisServiceImpl.addOrder(orderDto);
+
+            //결과코드 , 메시지 설정
+            orderDto.setResultCode(ResultCode);
+            orderDto.setResultMessage(ResultMessage);
+
+            //기본 response처리
+            OrderResponse response = OrderResponse.newBuilder()
+                    .setResultCode(orderDto.getResultCode())
+                    .setResultMessage(orderDto.getResultMessage())
+                    .setTranSeq(tranSeq)
+                    .setPgTid(PgTid)
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+
+            Calendar cal2 = Calendar.getInstance();
+            SimpleDateFormat sdf11 = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat sdf12 = new SimpleDateFormat("HH:mm:ss");
+            String datestr1 = sdf11.format(cal2.getTime());
+            String timestr1 = sdf12.format(cal2.getTime());
+            log.debug("###인증결제 주문처리끝 ({} {})", datestr1, timestr1);
         }
-        orderDto.setPgMerchNo(PgMerchNo);
-        orderDto.setPgTid(PgTid);
-
-        //클라이언트 아이피정보 설정
-        String cip              = null;
-        try {
-            cip = Inet4Address.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            ResultCode = "9999";
-            ResultMessage = "error : "+e.getMessage();
-        }
-
-        orderDto.setCustIp(cip);
-
-        //한도체크 ing....
-        payLimitAmtValidation(orderDto);
-
-        //가맹점 주문정보 tb_approval 저장
-        mybatisServiceImpl.addOrder(orderDto);
-
-        orderDto.setResultCode(ResultCode);
-        orderDto.setResultMessage(ResultMessage);
-
-        //기본 response처리
-        OrderResponse response  = OrderResponse.newBuilder()
-                .setResultCode(orderDto.getResultCode())
-                .setResultMessage(orderDto.getResultMessage())
-                .setTranSeq(tranSeq)
-                .setPgTid(PgTid)
-                .build();
-
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
-
-        Calendar cal2          = Calendar.getInstance();
-        SimpleDateFormat sdf11 = new SimpleDateFormat("yyyy-MM-dd");
-        SimpleDateFormat sdf12 = new SimpleDateFormat("HH:mm:ss");
-        String datestr1 = sdf11.format(cal2.getTime());
-        String timestr1 = sdf12.format(cal2.getTime());
-        log.debug("###인증결제 주문처리끝 ({} {})",datestr1,timestr1);
     }
 
     //승인처리 서비스
@@ -147,7 +232,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
 
         log.debug("###인증결제 승인처리시작 ({} {})",datestr,timestr);
         String ResultCode       = "0000";
-        String ResultMessage    = "승인이 완료되었습니다.";
+        String ResultMessage    = "정상적으로 결제가 완료되었습니다.";
 
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
@@ -157,8 +242,12 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         int tranSeqCount = mybatisServiceImpl.countApprovalTranSeq(payDto.getTranSeq());
         if (tranSeqCount>0) {
             ResultCode = "9999";
-            ResultMessage = "이미 승인이 완료된 거래입니다";
-            //throw new PgRequestException(ResultMessage,9999);
+            ResultMessage = "이미 결제가 완료된 거래입니다";
+
+            PaymentResponse response = PaymentResponse.newBuilder()
+                    .setResultCode(ResultCode)
+                    .setResultMessage(ResultMessage)
+                    .build();
         }
         
         payDto.setTradeDate(datestr);
@@ -174,6 +263,8 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setTranCate("10");
         payDto.setAcqrStatus("00");
         payDto.setPayChnCate("002");
+        payDto.setDpstStatus("N");
+        payDto.setStlmStatus("N");
 
         ApprDto apprDto = mybatisServiceImpl.findApprovalTranSeq(payDto.getTranSeq());
 
@@ -201,6 +292,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setMerchantNo("ksnet");
         payDto.setPayMethod(PayMethodEnum.CARD);
         payDto.setStoreId(apprDto.getStoreId());
+        payDto.setTotAmt(apprDto.getTotAmt());
 
         //금액계산
         setAmt(payDto);
@@ -212,14 +304,29 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         } catch (UnknownHostException e) {
             ResultCode = "9999";
             ResultMessage = "error : "+e.getMessage();
-            //throw new PgRequestException("error : "+e.getMessage(),9999);
+
+            PaymentResponse response = PaymentResponse.newBuilder()
+                    .setResultCode(ResultCode)
+                    .setResultMessage(ResultMessage)
+                    .build();
         }
         payDto.setIpAddr(cip);
 
         String UserSeq  = "";
-        UserDto userDto = mybatisServiceImpl.findUserInfo(payDto.getCustId());
-        UserSeq         = userDto.getUserSeq();
-        payDto.setUserSeq(UserSeq);
+
+        try {
+            UserDto userDto = mybatisServiceImpl.findUserInfo(payDto.getCustId());
+            UserSeq = userDto.getUserSeq();
+            payDto.setUserSeq(UserSeq);
+        } catch(NullPointerException e){
+            ResultCode = "9999";
+            ResultMessage = "회원정보를 확인해주세요";
+
+            PaymentResponse response = PaymentResponse.newBuilder()
+                    .setResultCode(ResultCode)
+                    .setResultMessage(ResultMessage)
+                    .build();
+        }
 
         //승인완료 후 승인정보받아서 tb_approval 업데이트
         mybatisServiceImpl.addApproval(payDto);
@@ -273,12 +380,11 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
     @Transactional
     public void setAmt(PayDto payDto){
 
-        BigDecimal totBd    = payDto.getAmount();
+        BigDecimal totBd    = payDto.getTotAmt();
         BigDecimal vatBd    = totBd.divide(new BigDecimal("11"), 0, RoundingMode.DOWN);
         BigDecimal splAmt   = totBd.subtract(vatBd);
         BigDecimal svcAmt   = totBd.subtract(splAmt.add(vatBd));
 
-        payDto.setTotAmt(totBd);                // 결제금액 입력
         payDto.setVatAmt(vatBd);                // 부가세 금액 입력
         payDto.setSvcAmt(svcAmt);                // 과세 금액
         payDto.setSplAmt(splAmt);               // 공급가액
@@ -341,4 +447,5 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         }
 
     }
+
 }

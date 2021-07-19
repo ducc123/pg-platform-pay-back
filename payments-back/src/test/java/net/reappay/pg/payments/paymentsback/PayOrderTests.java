@@ -20,7 +20,7 @@ class PayOrderTests {
         PaymentServiceGrpc.PaymentServiceBlockingStub orders = PaymentServiceGrpc.newBlockingStub(channel);
 
         Random rnd = new Random();
-        String randomStr = String.valueOf(rnd.nextInt(10000000));
+        String randomStr = String.valueOf(rnd.nextInt(99000000));
 
         OrderResponse paymentProto = orders.orderCall(OrderRequest.newBuilder()
                 .setCustId("coehdus1")
@@ -30,7 +30,7 @@ class PayOrderTests {
                 .setGoodsName("상품명%^%^&&!~~")
                 .setGoodsCode("123456")
                 .setProductType("1")
-                .setTotAmt(10000)
+                .setTotAmt(99)
                 .setInstallment("0")
                 .setOrderSeq(randomStr)
                 .setReturnUrl("http://naver.com")

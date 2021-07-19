@@ -2,6 +2,8 @@ package net.reappay.pg.payments.paymentsback.dto;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 public class ApprDto {
 
@@ -92,8 +94,9 @@ public class ApprDto {
     private int splAmt;
     private int svcAmt;
     private String tranStatus;
-    private int totAmt;
+
     private String storeId;
+    private BigDecimal totAmt;
 
 
 

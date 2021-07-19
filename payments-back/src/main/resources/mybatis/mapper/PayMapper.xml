@@ -278,8 +278,9 @@
             tot_amt,                            /* 거래금액 */
             merch_no,                            /* 원천사 가맹점번호 */
             pg_merch_no,                        /* PG 가맹점번호 */
-            ins_user                            /* 등록아이디 */
-
+            ins_user,                            /* 등록아이디 */
+            dpst_status,
+            stlm_status
         )
         VALUES
         (
@@ -290,7 +291,9 @@
             #{totAmt},
             #{storeId},
             #{pgMerchNo},
-            #{userSeq}
+            #{userSeq},
+            #{dpstStatus},
+            #{stlmStatus}
         )
     </insert>
 

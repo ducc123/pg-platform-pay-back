@@ -101,6 +101,7 @@ public class PayDto {
     private String billkeyYn;
     private String tranCate;
     private String acqrStatus;
-
+    private String dpstStatus;
+    private String stlmStatus;
 
 }

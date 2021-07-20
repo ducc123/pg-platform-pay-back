@@ -22,7 +22,7 @@ class PayApprovalTests {
         PaymentServiceGrpc.PaymentServiceBlockingStub pays = PaymentServiceGrpc.newBlockingStub(channel);
 
         PaymentResponse paymentProto = pays.paymentCall(PaymentRequest.newBuilder()
-                .setTranSeq("2021072013270100006810")
+                .setTranSeq("2021072013532700006811")
                 .setPgSeq("123456789012")
                 .setApprType("Order")
                 .setCertiType("a")
@@ -46,7 +46,7 @@ class PayApprovalTests {
                 .setAuthNo("12345678")
                 .setMessage1("Message1")
                 .setMessage2("Message2")
-                .setCardNo("960172******")
+                .setCardNo("941019******")
                 .setCardCode("026")
                 .setExpDate("2112")
                 .setInstallment("00")

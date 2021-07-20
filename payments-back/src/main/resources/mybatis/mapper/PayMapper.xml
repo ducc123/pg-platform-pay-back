@@ -117,7 +117,7 @@
             ip_addr= #{ipAddr} ,
             trade_date= #{tradeDate} ,
             trade_time= #{tradeTime} ,
-            iss_code= #{issCode} ,
+            iss_code= #{cardCode} ,
             aqu_code= #{aquCode} ,
             cavv= #{cavv} ,
             xid= #{xid} ,
@@ -233,7 +233,7 @@
 
             #{payChnCate},
             #{cardNo},
-            #{cardCode},
+            #{issCode},
             #{cardIssuNm},
             #{status},
 

@@ -7,7 +7,7 @@ import net.reappay.pg.payments.paymentsback.dto.PayDto;
 import net.reappay.pg.payments.paymentsback.dto.UserDto;
 import net.reappay.pg.payments.paymentsback.entity.PayTerminalInfo;
 import net.reappay.pg.payments.paymentsback.entity.PayTidInfo;
-import net.reappay.pg.payments.paymentsback.enums.PayMethodEnum;
+import net.reappay.pg.payments.paymentsback.enums.*;
 import net.reappay.pg.payments.paymentsback.exception.PgRequestException;
 import net.reappay.pg.payments.paymentsback.proto.*;
 
@@ -251,26 +251,39 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setTradeDate(datestr.replace("-","").replace(" ",""));
         payDto.setTradeTime(timestr.replace(":","").replace(" ",""));
         payDto.setTableYd(cardpgdatestr);
-        
-        //빈값들 중 기본값으로 0 혹은 N 설정
+
+        /**
+         * 기본 값이 필요한 필드설정
+         */
         payDto.setNotiTryCnt(0);
         payDto.setNotiStatus("00");
         payDto.setTranChkFlag(0);
         payDto.setAcqrChkFlag(0);
         payDto.setBillkeyYn("N");
-        payDto.setTranCate("10");
         payDto.setAcqrStatus("00");
         payDto.setPayChnCate("002");
         payDto.setDpstStatus("N");
         payDto.setStlmStatus("N");
-
+        payDto.setResultStatus("00");
+        payDto.setCurrencyType("KRW");
+        payDto.setMerchantNo("ksnet");
         ApprDto apprDto = mybatisServiceImpl.findApprovalTranSeq(payDto.getTranSeq());
+        if (apprDto.getProductType().length()==0) {
+            payDto.setProductType("0");
+        } else {
+            payDto.setProductType(apprDto.getProductType());
+        }
+        payDto.setTranStatus(TranStatusEnum.APPROVAL.code());
+        payDto.setTranCate(TranTypeEnum.APPROVAL_REQUEST.code());
+        payDto.setTranStep(TranStepEnum.TRAN_COMPLETE.code());
+        payDto.setPayMethod(PayMethodEnum.CARD);
 
-        //카드명 받아오기
+
+        /**
+         * 주문정보값으로 payDto 설정
+         */
         payDto.setCardNo(payDto.getCardNo().substring(0,6));
         Map<String, String> cardIss = mybatisServiceImpl.findCardIssCdByCardNoString(payDto);
-
-        //log.info("date==="+apprDto.getOrderDate().replace("-","").replace(" ",""));
         payDto.setIssCode(cardIss.get("ISS_CD"));
         payDto.setCardIssuNm(cardIss.get("CODE_NM"));
         payDto.setOrderDate(apprDto.getOrderDate().replace("-","").replace(" ",""));
@@ -284,27 +297,14 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setPgMerchNo(apprDto.getPgMerchNo());
         payDto.setPgTid(apprDto.getPgTid());
         payDto.setStatus(apprDto.getStatus());
-        payDto.setTranStatus("00");
-        payDto.setResultStatus("00");
-        payDto.setTranStep("00");
         payDto.setTranType(apprDto.getTranType());
         payDto.setCustId(apprDto.getCustId());
-        payDto.setCurrencyType("KRW");
-        payDto.setMerchantNo("ksnet");
-        payDto.setPayMethod(PayMethodEnum.CARD);
         payDto.setStoreId(apprDto.getStoreId());
         payDto.setTotAmt(apprDto.getTotAmt());
-        if (apprDto.getProductType()!="") {
-           payDto.setProductType("0");
-        } else {
-           payDto.setProductType(apprDto.getProductType());
-        }
 
-        UserDto userDto = mybatisServiceImpl.findUserInfo(apprDto.getCustId());
-        payDto.setUserCate(userDto.getUserCate());
-        payDto.setCustName(userDto.getUserNm());
-
-        //승인클라이언트 아이피정보 설정
+        /**
+        * 클라이언트 아이피정보 설정
+        **/
         String cip              = null;
         try {
             cip = Inet4Address.getLocalHost().getHostAddress();
@@ -323,6 +323,10 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
          * 회원정보 validation
          **/
         try {
+            UserDto userDto = mybatisServiceImpl.findUserInfo(apprDto.getCustId());
+            payDto.setUserCate(userDto.getUserCate());
+            payDto.setCustName(userDto.getUserNm());
+
             UserSeq = userDto.getUserSeq();
             payDto.setUserSeq(UserSeq);
         } catch(NullPointerException e){
@@ -353,7 +357,9 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             ResultMessage = "정상적으로 결제가 완료되지 않았습니다.";
         }
 
-        //승인완료 후 승인정보받아서 tb_approval 업데이트
+        /**
+         * 승인완료 후 승인정보받아서 tb_approval 업데이트
+         **/
         mybatisServiceImpl.addApproval(payDto);
 
         String ResultSuccessCode    = "0000";
@@ -374,8 +380,6 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             mybatisServiceImpl.addTransactionError(payDto);
         }
 
-        log.info("ddddd"+payDto.getTableYd());
-
         int CardPgCount = mybatisServiceImpl.countTranCardPgTranSeq(payDto);
         if (CardPgCount>0) {
             ResultCode = "9999";
@@ -387,7 +391,6 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                     .build();
         } else {
             //tb_tran_cardpg_YYmm 저장
-
             mybatisServiceImpl.addTransactionCardPg(payDto);
         }
 
@@ -462,7 +465,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         log.debug("=======> limitAmt : {}", limitAmt);
 
         // 한도금액
-        if (limitAmt.contains("0")) {
+        if (limitAmt.equals("0")) {
             PayTidInfo payTidInfo = mybatisServiceImpl.findPgTidInfo2(payDto);
 
             // 건별 결제 한도
@@ -483,11 +486,11 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             }
         } else {
 
-            if (limitAmt=="1") {
+            if (limitAmt.equals("1")) {
                 log.error("### "+3004 + " : 월 결제한도를 초과하였습니다");
                 ResultCode = "3004";
                 ResultMessage = "월 결제한도를 초과하였습니다";
-            } else if (limitAmt=="2") {
+            } else if (limitAmt.equals("2")) {
                 log.error("### "+3005 + " : 년 결제한도를 초과하였습니다.");
                 ResultCode = "3005";
                 ResultMessage = "년 결제한도를 초과하였습니다";
@@ -522,7 +525,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         log.debug("최대할부 개월수 : {}",maxInstallment);
 
         // 할부(x)
-        if (reqInstallment != null && reqInstallment!="00") {
+        if (reqInstallment != null && !reqInstallment.equals("00")) {
 
             // 할부가 불가능한 경우
             if (maxInstallment == 0) {

@@ -240,11 +240,6 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         if (tranSeqCount>0) {
             ResultCode = "9000";
             ResultMessage = "이미 결제된 거래입니다.";
-
-            PaymentResponse response = PaymentResponse.newBuilder()
-                    .setResultCode(ResultCode)
-                    .setResultMessage(ResultMessage)
-                    .build();
         }
 
         payDto.setTradeDate(datestr.replace("-","").replace(" ",""));
@@ -310,11 +305,6 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         } catch (UnknownHostException e) {
             ResultCode = "9000";
             ResultMessage = "error : "+e.getMessage();
-
-            PaymentResponse response = PaymentResponse.newBuilder()
-                    .setResultCode(ResultCode)
-                    .setResultMessage(ResultMessage)
-                    .build();
         }
         payDto.setIpAddr(cip);
 
@@ -331,11 +321,6 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         } catch(NullPointerException e){
             ResultCode = "9000";
             ResultMessage = "회원정보를 확인해주세요";
-
-            PaymentResponse response = PaymentResponse.newBuilder()
-                    .setResultCode(ResultCode)
-                    .setResultMessage(ResultMessage)
-                    .build();
         }
 
         /**
@@ -343,13 +328,14 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
          **/
         String ResultMessage1="";
         String ResultMessage2="";
+        String ResultMessage3="";
         try {
             //금액계산
             ResultMessage1 = this.setAmt(payDto);
             //한도체크
             ResultMessage2 = this.payLimitAmtValidation(payDto);
             //최대 할부개월수체크
-            ResultMessage = this.payInstallmentValidation(payDto);
+            ResultMessage3 = this.payInstallmentValidation(payDto);
 
         } catch(NullPointerException e){
             ResultCode = "9000";
@@ -362,6 +348,9 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         } else if (ResultMessage2!=""){
             ResultCode = "9000";
             ResultMessage = ResultMessage2;
+         } else if (ResultMessage3!=""){
+            ResultCode = "9000";
+            ResultMessage = ResultMessage3;
         }
 
         /**
@@ -373,6 +362,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setApprovalMsg(ResultMessage);
 
         if(ResultCode.equals("0000")) {
+            ResultMessage= "정상승인이 완료되었습니다.";
             log.debug("인증결제성공({}) 결제결과 = code: {} msg: {}",payDto.getTranSeq(),ResultCode,ResultMessage);
 
             //승인정보 tb_transaction 저장
@@ -387,8 +377,6 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             //승인정보 tb_transaction_error 저장(승인실패시)
             mybatisServiceImpl.addTransactionError(payDto);
         }
-
-
 
         /**
          * 기본 response처리
@@ -454,8 +442,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
     @Transactional
     public String payLimitAmtValidation(PayDto payDto) {
         String limitAmt = mybatisServiceImpl.limitAmtCheck(payDto);
-        String ResultCode;
-        String ResultMessage = null;
+        String ResultMessage = "";
 
         log.debug("### 한도 Validation");
         log.debug("=======> limitAmt : {}", limitAmt);
@@ -476,7 +463,6 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                 // 결제 금액이 건 별 결제 한도보다 많은 경우
                 if (payAmt > perLimitAmt) {
                     log.error("### "+3003 + " : 건별 결제한도를 초과하였습니다.");
-                    ResultCode = "3003";
                     ResultMessage = "건별 결제한도를 초과하였습니다";
                 }
                 return ResultMessage;
@@ -485,15 +471,12 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
 
             if (limitAmt.equals("1")) {
                 log.error("### "+3004 + " : 월 결제한도를 초과하였습니다");
-                ResultCode = "3004";
                 ResultMessage = "월 결제한도를 초과하였습니다";
             } else if (limitAmt.equals("2")) {
                 log.error("### "+3005 + " : 년 결제한도를 초과하였습니다.");
-                ResultCode = "3005";
                 ResultMessage = "년 결제한도를 초과하였습니다";
             } else {
                 log.error("### "+3006 + " : 결제한도를 초과하였습니다.");
-                ResultCode = "3006";
                 ResultMessage = "결제한도를 초과하였습니다.";
             }
 
@@ -511,8 +494,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
     public String payInstallmentValidation(PayDto payDto) {
         // 요청 할부 개월
         String reqInstallment = payDto.getInstallment();
-        String ResultCode;
-        String ResultMessage = null;
+        String ResultMessage = "";
 
         log.debug("### 결제 할부 개월 Validation");
 
@@ -526,7 +508,6 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             // 할부가 불가능한 경우
             if (maxInstallment == 0) {
                 log.error("### "+6002 + " : 할부가 불가능 합니다.");
-                ResultCode = "6002";
                 ResultMessage = "할부가 불가능 합니다";
 
             } else {
@@ -539,7 +520,6 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                     sb.append("개월 입니다.");
                     log.error("### "+6003 + " : "+sb);
 
-                    ResultCode = "6003";
                     ResultMessage = sb.toString();
 
                 }

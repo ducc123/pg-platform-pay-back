@@ -17,13 +17,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -32,7 +32,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
 
     @Autowired
     private final MybatisServiceImpl mybatisServiceImpl;
-    
+
     //주문처리 서비스@20210719
     @Transactional
     @Override
@@ -315,25 +315,9 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         }
         payDto.setIpAddr(cip);
 
-        try {
-
-            /**
-             * 결제 전 validation
-             **/
-            //금액계산
-            setAmt(payDto);
-
-            //한도체크
-            payLimitAmtValidation(payDto);
-
-            //최대 할부개월수체크
-            payInstallmentValidation(payDto);
-
-        } catch(NullPointerException e){
-            ResultCode = "9999";
-            ResultMessage = "정상적으로 결제가 완료되지 않았습니다.";
-        }
-
+        /**
+         * 회원정보 validation
+         **/
         try {
             UserSeq = userDto.getUserSeq();
             payDto.setUserSeq(UserSeq);
@@ -345,6 +329,24 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                     .setResultCode(ResultCode)
                     .setResultMessage(ResultMessage)
                     .build();
+        }
+
+        /**
+         * 결제 전 validation
+         **/
+        try {
+            //금액계산
+            this.setAmt(payDto);
+
+            //한도체크
+            this.payLimitAmtValidation(payDto);
+
+            //최대 할부개월수체크
+            this.payInstallmentValidation(payDto);
+
+        } catch(NullPointerException e){
+            ResultCode = "9999";
+            ResultMessage = "정상적으로 결제가 완료되지 않았습니다.";
         }
 
         //승인완료 후 승인정보받아서 tb_approval 업데이트
@@ -526,7 +528,6 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             }
         }
     }
-
 
     public PaymentServiceImpl(MybatisServiceImpl mybatisServiceImpl) {
         this.mybatisServiceImpl = mybatisServiceImpl;

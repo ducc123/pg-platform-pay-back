@@ -1,7 +1,7 @@
 package net.reappay.pg.payments.paymentsback.enums;
 
 public enum PayMethodEnum {
-    CARD("미매입", "card1"),
+    CARD("신용카드", "card"),
     BANK("실시간계좌이체", "bank"),
     VIRTUALBANK("가상계좌", "vbank"),
     PHONE("휴대폰결제", "phone");

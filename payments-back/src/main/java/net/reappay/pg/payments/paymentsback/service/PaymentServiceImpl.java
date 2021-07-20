@@ -62,15 +62,6 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             //결과코드 , 메시지 설정
             orderDto.setResultCode(ResultCode);
             orderDto.setResultMessage(ResultMessage);
-
-            //기본 response처리
-            OrderResponse response = OrderResponse.newBuilder()
-                    .setResultCode(orderDto.getResultCode())
-                    .setResultMessage(orderDto.getResultMessage())
-                    .build();
-
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
         } else if (orderDto.getGoodsName().isEmpty()){
             ResultCode       = "9999";
             ResultMessage    = "상품명을 확인해주세요.";
@@ -78,15 +69,6 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             //결과코드 , 메시지 설정
             orderDto.setResultCode(ResultCode);
             orderDto.setResultMessage(ResultMessage);
-
-            //기본 response처리
-            OrderResponse response = OrderResponse.newBuilder()
-                    .setResultCode(orderDto.getResultCode())
-                    .setResultMessage(orderDto.getResultMessage())
-                    .build();
-
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
         } else if (orderDto.getTotAmt().toString().isEmpty() || orderDto.getTotAmt()<100){
             ResultCode       = "9999";
             ResultMessage    = "결제금액을 확인해주세요.";
@@ -94,15 +76,6 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             //결과코드 , 메시지 설정
             orderDto.setResultCode(ResultCode);
             orderDto.setResultMessage(ResultMessage);
-
-            //기본 response처리
-            OrderResponse response = OrderResponse.newBuilder()
-                    .setResultCode(orderDto.getResultCode())
-                    .setResultMessage(orderDto.getResultMessage())
-                    .build();
-
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
         } else if (orderDto.getOrderSeq().length()==0){
             ResultCode       = "9999";
             ResultMessage    = "주문번호를 확인해주세요.";
@@ -110,15 +83,6 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             //결과코드 , 메시지 설정
             orderDto.setResultCode(ResultCode);
             orderDto.setResultMessage(ResultMessage);
-
-            //기본 response처리
-            OrderResponse response = OrderResponse.newBuilder()
-                    .setResultCode(orderDto.getResultCode())
-                    .setResultMessage(orderDto.getResultMessage())
-                    .build();
-
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
         } else if (orderDto.getOrderSeq().isEmpty()){
             ResultCode       = "9999";
             ResultMessage    = "주문번호를 확인해주세요.";
@@ -126,15 +90,6 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             //결과코드 , 메시지 설정
             orderDto.setResultCode(ResultCode);
             orderDto.setResultMessage(ResultMessage);
-
-            //기본 response처리
-            OrderResponse response = OrderResponse.newBuilder()
-                    .setResultCode(orderDto.getResultCode())
-                    .setResultMessage(orderDto.getResultMessage())
-                    .build();
-
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
         } else {
 
             //transeq 생성해서 저장
@@ -147,6 +102,10 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             orderDto.setTranType("10");
             orderDto.setCurrencyType("KRW");
             orderDto.setPayMethod(PayMethodEnum.CARD);
+
+            if (orderDto.getProductType()==null || orderDto.getProductType()=="") {
+                orderDto.setProductType("0");
+            }
 
             try {
                 //회원정보 가져오기
@@ -262,16 +221,10 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setCurrencyType("KRW");
         payDto.setMerchantNo("ksnet");
         ApprDto apprDto = mybatisServiceImpl.findApprovalTranSeq(payDto.getTranSeq());
-        if (apprDto.getProductType()==null) {
-            payDto.setProductType("0");
-        } else {
-            payDto.setProductType(apprDto.getProductType());
-        }
         payDto.setTranStatus(TranStatusEnum.APPROVAL.code());
         payDto.setTranCate(TranTypeEnum.APPROVAL_REQUEST.code());
         payDto.setTranStep(TranStepEnum.TRAN_COMPLETE.code());
         payDto.setPayMethod(PayMethodEnum.CARD);
-
 
         /**
          * 주문정보값으로 payDto 설정
@@ -361,7 +314,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setApprovalCode(ResultCode);
         payDto.setApprovalMsg(ResultMessage);
 
-        if(ResultCode.equals("0000")) {
+        if(ResultCode=="0000") {
             ResultMessage= "정상승인이 완료되었습니다.";
             log.debug("인증결제성공({}) 결제결과 = code: {} msg: {}",payDto.getTranSeq(),ResultCode,ResultMessage);
 
@@ -370,7 +323,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             //승인정보 tb_transaction_card 저장
             mybatisServiceImpl.addTransactionCard(payDto);
 
-        } else if(ResultCode.equals("9000")) {
+        } else if(ResultCode=="9000") {
             log.debug("인증결제({}) PG내부오류 = code: {} msg: {}",payDto.getTranSeq(),ResultCode,ResultMessage);
         } else {
             log.debug("인증결제실패({}) 결제결과 = code: {} msg: {}",payDto.getTranSeq(),ResultCode,ResultMessage);

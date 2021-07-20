@@ -30,7 +30,6 @@ import java.util.Map;
 @GrpcService
 public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBase {
 
-    @Autowired
     private final MybatisServiceImpl mybatisServiceImpl;
 
     //주문처리 서비스@20210719
@@ -51,8 +50,8 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         OrderDto orderDto       = modelMapper.map(request, OrderDto.class);
 
         //PgMerchNo PgTid설정
-        String PgMerchNo = "";
-        String PgTid = "";
+        String PgMerchNo;
+        String PgTid=null;
         String ResultCode = "0000";
         String ResultMessage = "정상적으로 주문이 완료되었습니다.";
 
@@ -104,7 +103,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
 
             responseObserver.onNext(response);
             responseObserver.onCompleted();
-        } else if (orderDto.getOrderSeq().isEmpty()){
+        } else if (orderDto.getOrderSeq().length()==0){
             ResultCode       = "9999";
             ResultMessage    = "주문번호를 확인해주세요.";
 
@@ -177,7 +176,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             }
 
             //클라이언트 아이피정보 설정
-            String cip = null;
+            String cip;
             try {
                 cip = Inet4Address.getLocalHost().getHostAddress();
                 orderDto.setCustIp(cip);
@@ -217,12 +216,12 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
     @Transactional
     @Override
     public void paymentCall(PaymentRequest request, StreamObserver<PaymentResponse> responseObserver) {
-        
+
         //기본 시작날짜시간 설정
         Calendar cal            = Calendar.getInstance();
         SimpleDateFormat sdf    = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat sdf2   = new SimpleDateFormat("HH:mm:ss");
-        SimpleDateFormat sdf3   = new SimpleDateFormat("YYMM");
+        SimpleDateFormat sdf3   = new SimpleDateFormat("yyMM");
         String datestr          = sdf.format(cal.getTime());
         String timestr          = sdf2.format(cal.getTime());
         String cardpgdatestr    = sdf3.format(cal.getTime());
@@ -230,7 +229,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         log.debug("###인증결제 승인처리시작 ({} {} {})",datestr,timestr,cardpgdatestr);
         String ResultCode       = "0000";
         String ResultMessage    = "정상적으로 결제가 완료되었습니다.";
-        String UserSeq          = "";
+        String UserSeq;
 
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
@@ -239,8 +238,8 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         //중복승인인지 확인함 refresh 되는 상황을 처리하기 위해
         int tranSeqCount = mybatisServiceImpl.countApprovalTranSeq(payDto.getTranSeq());
         if (tranSeqCount>0) {
-            ResultCode = "9999";
-            ResultMessage = "이미 결제가 완료된 거래입니다";
+            ResultCode = "9000";
+            ResultMessage = "이미 결제된 거래입니다.";
 
             PaymentResponse response = PaymentResponse.newBuilder()
                     .setResultCode(ResultCode)
@@ -268,7 +267,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setCurrencyType("KRW");
         payDto.setMerchantNo("ksnet");
         ApprDto apprDto = mybatisServiceImpl.findApprovalTranSeq(payDto.getTranSeq());
-        if (apprDto.getProductType().length()==0) {
+        if (apprDto.getProductType()==null) {
             payDto.setProductType("0");
         } else {
             payDto.setProductType(apprDto.getProductType());
@@ -309,7 +308,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         try {
             cip = Inet4Address.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
-            ResultCode = "9999";
+            ResultCode = "9000";
             ResultMessage = "error : "+e.getMessage();
 
             PaymentResponse response = PaymentResponse.newBuilder()
@@ -330,7 +329,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             UserSeq = userDto.getUserSeq();
             payDto.setUserSeq(UserSeq);
         } catch(NullPointerException e){
-            ResultCode = "9999";
+            ResultCode = "9000";
             ResultMessage = "회원정보를 확인해주세요";
 
             PaymentResponse response = PaymentResponse.newBuilder()
@@ -342,19 +341,27 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         /**
          * 결제 전 validation
          **/
+        String ResultMessage1="";
+        String ResultMessage2="";
         try {
             //금액계산
-            this.setAmt(payDto);
-
+            ResultMessage1 = this.setAmt(payDto);
             //한도체크
-            this.payLimitAmtValidation(payDto);
-
+            ResultMessage2 = this.payLimitAmtValidation(payDto);
             //최대 할부개월수체크
-            this.payInstallmentValidation(payDto);
+            ResultMessage = this.payInstallmentValidation(payDto);
 
         } catch(NullPointerException e){
-            ResultCode = "9999";
+            ResultCode = "9000";
             ResultMessage = "정상적으로 결제가 완료되지 않았습니다.";
+        }
+
+        if (ResultMessage1!=""){
+            ResultCode = "9000";
+            ResultMessage = ResultMessage1;
+        } else if (ResultMessage2!=""){
+            ResultCode = "9000";
+            ResultMessage = ResultMessage2;
         }
 
         /**
@@ -362,11 +369,10 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
          **/
         mybatisServiceImpl.addApproval(payDto);
 
-        String ResultSuccessCode    = "0000";
         payDto.setApprovalCode(ResultCode);
         payDto.setApprovalMsg(ResultMessage);
 
-        if(ResultCode.equals(ResultSuccessCode)) {
+        if(ResultCode.equals("0000")) {
             log.debug("인증결제성공({}) 결제결과 = code: {} msg: {}",payDto.getTranSeq(),ResultCode,ResultMessage);
 
             //승인정보 tb_transaction 저장
@@ -374,28 +380,19 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             //승인정보 tb_transaction_card 저장
             mybatisServiceImpl.addTransactionCard(payDto);
 
+        } else if(ResultCode.equals("9000")) {
+            log.debug("인증결제({}) PG내부오류 = code: {} msg: {}",payDto.getTranSeq(),ResultCode,ResultMessage);
         } else {
             log.debug("인증결제실패({}) 결제결과 = code: {} msg: {}",payDto.getTranSeq(),ResultCode,ResultMessage);
             //승인정보 tb_transaction_error 저장(승인실패시)
             mybatisServiceImpl.addTransactionError(payDto);
         }
 
-        int CardPgCount = mybatisServiceImpl.countTranCardPgTranSeq(payDto);
-        if (CardPgCount>0) {
-            ResultCode = "9999";
-            ResultMessage = "이미 결제된 거래입니다";
 
-            PaymentResponse response = PaymentResponse.newBuilder()
-                    .setResultCode(ResultCode)
-                    .setResultMessage(ResultMessage)
-                    .build();
-        } else {
-            //tb_tran_cardpg_YYmm 저장
-            mybatisServiceImpl.addTransactionCardPg(payDto);
-        }
 
-        
-        //기본 response처리
+        /**
+         * 기본 response처리
+         **/
         PaymentResponse response = PaymentResponse.newBuilder()
                 .setResultCode(ResultCode)
                 .setResultMessage(ResultMessage)
@@ -423,10 +420,12 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
     /**
      * [Approval] 결제금액 validation
      *
-     * @param payDto
+     * payDto
      */
     @Transactional
-    public void setAmt(PayDto payDto){
+    public String setAmt(PayDto payDto){
+
+        String ResultMessage = "";
 
         BigDecimal totBd    = payDto.getTotAmt();
         BigDecimal vatBd    = totBd.divide(new BigDecimal("11"), 0, RoundingMode.DOWN);
@@ -440,26 +439,23 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
 
         if (payDto.getTotAmt().intValue() <= 0 || payDto.getTotAmt().intValue() != (splAmt.intValue() + vatBd.intValue())) {
             String ResultCode = "3001";
-            String ResultMessage = "결제금액을 입력해주세요";
-
-            PaymentResponse response = PaymentResponse.newBuilder()
-                    .setResultCode(ResultCode)
-                    .setResultMessage(ResultMessage)
-                    .build();
+            ResultMessage = "결제금액을 입력해주세요";
         }
+
+        return ResultMessage;
 
     }
 
     /**
      * [Approval] 한도 validation
      *
-     * @param payDto
+     * payDto
      */
     @Transactional
-    public void payLimitAmtValidation(PayDto payDto) {
+    public String payLimitAmtValidation(PayDto payDto) {
         String limitAmt = mybatisServiceImpl.limitAmtCheck(payDto);
-        String ResultCode = "";
-        String ResultMessage = "";
+        String ResultCode;
+        String ResultMessage = null;
 
         log.debug("### 한도 Validation");
         log.debug("=======> limitAmt : {}", limitAmt);
@@ -483,6 +479,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                     ResultCode = "3003";
                     ResultMessage = "건별 결제한도를 초과하였습니다";
                 }
+                return ResultMessage;
             }
         } else {
 
@@ -500,29 +497,28 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                 ResultMessage = "결제한도를 초과하였습니다.";
             }
 
-            throw new PgRequestException(ResultMessage,ResultCode);
-
         }
+
+        return ResultMessage;
     }
 
     /**
      * [Approval] 할부 개월 validation
      *
-     * @param payDto
+     * payDto
      */
     @Transactional
-    public void payInstallmentValidation(PayDto payDto) {
+    public String payInstallmentValidation(PayDto payDto) {
         // 요청 할부 개월
         String reqInstallment = payDto.getInstallment();
-        String pgMerchNo = payDto.getPgMerchNo();
-        String ResultCode = "";
-        String ResultMessage = "";
+        String ResultCode;
+        String ResultMessage = null;
 
         log.debug("### 결제 할부 개월 Validation");
 
         // 최대 할부 개월
         int maxInstallment = mybatisServiceImpl.findInstallmentMonthByNo(payDto);
-        log.debug("최대할부 개월수 : {}",maxInstallment);
+        log.debug("최대할부 개월수 : {}개월",maxInstallment);
 
         // 할부(x)
         if (reqInstallment != null && !reqInstallment.equals("00")) {
@@ -532,23 +528,24 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                 log.error("### "+6002 + " : 할부가 불가능 합니다.");
                 ResultCode = "6002";
                 ResultMessage = "할부가 불가능 합니다";
-                throw new PgRequestException(ResultMessage,ResultCode);
+
             } else {
                 int reqInstall = Integer.parseInt(reqInstallment);
 
                 // 요청 할부 개월이 가능한 할부 개월 수 보다 큰 경우
                 if (reqInstall > maxInstallment) {
-                    StringBuffer sb = new StringBuffer("최대 할부 개월은 ");
+                    StringBuffer sb = new StringBuffer("최대 할부개월를 초과했습니다. 결제요청 할부개월수는 ");
                     sb.append(reqInstall);
                     sb.append("개월 입니다.");
-                    log.error("### "+6003 + " : "+sb.toString());
+                    log.error("### "+6003 + " : "+sb);
 
                     ResultCode = "6003";
                     ResultMessage = sb.toString();
-                    throw new PgRequestException(ResultMessage,ResultCode);
+
                 }
             }
         }
+        return ResultMessage;
     }
 
     public PaymentServiceImpl(MybatisServiceImpl mybatisServiceImpl) {

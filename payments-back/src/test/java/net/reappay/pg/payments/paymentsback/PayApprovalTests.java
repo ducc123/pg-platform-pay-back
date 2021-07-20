@@ -8,8 +8,6 @@ import net.reappay.pg.payments.paymentsback.proto.PaymentServiceGrpc;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.Random;
-
 @SpringBootTest
 class PayApprovalTests {
 
@@ -22,7 +20,7 @@ class PayApprovalTests {
         PaymentServiceGrpc.PaymentServiceBlockingStub pays = PaymentServiceGrpc.newBlockingStub(channel);
 
         PaymentResponse paymentProto = pays.paymentCall(PaymentRequest.newBuilder()
-                .setTranSeq("2021072013532700006811")
+                .setTranSeq("2021072013270100006810")
                 .setPgSeq("123456789012")
                 .setApprType("Order")
                 .setCertiType("a")
@@ -49,7 +47,7 @@ class PayApprovalTests {
                 .setCardNo("941019******")
                 .setCardCode("026")
                 .setExpDate("2112")
-                .setInstallment("00")
+                .setInstallment("5")
                 .setMerchantNo("30")
                 .setAuthSendType("31")
                 .setApprovalSendType("1")

@@ -241,7 +241,10 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             ResultCode = "9999";
             ResultMessage = "이미 결제가 완료된 거래입니다";
 
-            this.payend(ResultCode,ResultMessage);
+            PaymentResponse response = PaymentResponse.newBuilder()
+                    .setResultCode(ResultCode)
+                    .setResultMessage(ResultMessage)
+                    .build();
         }
 
         payDto.setTradeDate(datestr.replace("-","").replace(" ",""));
@@ -304,7 +307,10 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             ResultCode = "9999";
             ResultMessage = "error : "+e.getMessage();
 
-            this.payend(ResultCode,ResultMessage);
+            PaymentResponse response = PaymentResponse.newBuilder()
+                    .setResultCode(ResultCode)
+                    .setResultMessage(ResultMessage)
+                    .build();
         }
         payDto.setIpAddr(cip);
 
@@ -329,7 +335,10 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             ResultCode = "9999";
             ResultMessage = "회원정보를 확인해주세요";
 
-            this.payend(ResultCode,ResultMessage);
+            PaymentResponse response = PaymentResponse.newBuilder()
+                    .setResultCode(ResultCode)
+                    .setResultMessage(ResultMessage)
+                    .build();
         }
 
         //승인완료 후 승인정보받아서 tb_approval 업데이트
@@ -398,7 +407,10 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             String ResultCode = "3001";
             String ResultMessage = "결제금액을 입력해주세요";
 
-            this.payend(ResultCode,ResultMessage);
+            PaymentResponse response = PaymentResponse.newBuilder()
+                    .setResultCode(ResultCode)
+                    .setResultMessage(ResultMessage)
+                    .build();
         }
 
     }
@@ -447,18 +459,12 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                 ResultMessage = "결제한도를 초과하였습니다.";
             }
 
-            this.payend(ResultCode,ResultMessage);
+            throw new PgRequestException(ResultMessage,ResultCode);
 
         }
     }
 
 
-    public void payend(String ResultCode,String ResultMessage){
-        PaymentResponse response = PaymentResponse.newBuilder()
-                .setResultCode(ResultCode)
-                .setResultMessage(ResultMessage)
-                .build();
-    }
     public PaymentServiceImpl(MybatisServiceImpl mybatisServiceImpl) {
         this.mybatisServiceImpl = mybatisServiceImpl;
     }

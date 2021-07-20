@@ -404,6 +404,7 @@
         , TRAN_CATE
 
         , TAX_AMT
+        , SVC_AMT
         , CURRENCY
         , ISS_CD
         , ISS_NM
@@ -429,6 +430,7 @@
         , INS_DT
         , INS_USER
         , PG_MERCH_NO
+        , PG_MERCH_ADJ_CHK
         )
         VALUES
         (
@@ -451,7 +453,8 @@
         , #{tradeTime}
         , #{tranCate}
 
-        , #{svcAmt}
+        , #{splAmt}
+        , 0
         , #{currencyType}
         , #{issCode}
         , #{cardIssuNm}
@@ -478,10 +481,11 @@
         , DATE_FORMAT(now(),'%Y%m%d%H%i%S')
         , #{userSeq}
         , #{pgMerchNo}
+        , 'N'
         )
     </insert>
 
-    <update id="updateTranCardPg" parameterType="tbTranCardPg">
+    <update id="updateTranCardPg" parameterType="PayDto">
         UPDATE #{tableyd}
         SET CNCL_REASON  = #{cnclReason}
         , TRAN_STATUS  = #{tranStatus}

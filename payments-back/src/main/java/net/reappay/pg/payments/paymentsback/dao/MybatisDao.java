@@ -27,7 +27,7 @@ public interface MybatisDao {
     /**
      * 회원별 한도 가져오기
      * */
-    String limitAmtCheck(OrderDto orderDto) throws DataAccessException;
+    String limitAmtCheck(PayDto payDto) throws DataAccessException;
 
     Map<String, String> findCardIssCdByCardNoString(PayDto payDto) throws DataAccessException;
     /**
@@ -39,6 +39,7 @@ public interface MybatisDao {
     int countApprovalTranSeq(String TranSeq) throws DataAccessException;
 
     PayTidInfo findPgTidInfo(OrderDto orderDto) throws DataAccessException;
+    PayTidInfo findPgTidInfo2(PayDto payDto) throws DataAccessException;
     PayTerminalInfo findTerminal(OrderDto orderDto) throws DataAccessException;
     /**
      * 주문정보 디비저장

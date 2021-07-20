@@ -5,9 +5,10 @@ import lombok.Data;
 @Data
 public class UserDto {
 
-    private String UserCate;
+    private String userCate;
     private String pgMerchNo;
     private String pgTid;
     private String userSeq;
+    private String userNm;
 
 }

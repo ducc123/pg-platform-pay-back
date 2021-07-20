@@ -25,8 +25,8 @@ public class MybatisServiceImpl {
         return tranSeq;
     }
 
-    public String limitAmtCheck(OrderDto orderDto) {
-        String limitAmt = mybatisDao.limitAmtCheck(orderDto);
+    public String limitAmtCheck(PayDto payDto) {
+        String limitAmt = mybatisDao.limitAmtCheck(payDto);
         return limitAmt;
     }
 
@@ -50,6 +50,11 @@ public class MybatisServiceImpl {
         return payTidInfo;
     }
 
+    public PayTidInfo findPgTidInfo2(PayDto payDto){
+        PayTidInfo payTidInfo= mybatisDao.findPgTidInfo2(payDto);
+        return payTidInfo;
+    }
+
     public PayTerminalInfo findTerminal(OrderDto orderDto){
         PayTerminalInfo payTerminalInfo= mybatisDao.findTerminal(orderDto);
         return payTerminalInfo;
@@ -69,8 +74,6 @@ public class MybatisServiceImpl {
         mybatisDao.addTransactionCard(payDto);
     }
     public void addTransactionError(PayDto payDto) { mybatisDao.addTransactionError(payDto);     }
-    public void addTransactionCardPg(PayDto payDto) {
-        //mybatisDao.addTransactionCardPg(payDto);
-    }
+    public void addTransactionCardPg(PayDto payDto) { mybatisDao.addTransactionCardPg(payDto);    }
 
 }

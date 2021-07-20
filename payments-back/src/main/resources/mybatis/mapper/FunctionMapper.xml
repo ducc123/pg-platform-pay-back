@@ -12,7 +12,7 @@
     <select id="limitAmtCheck"
             parameterType="payDto"
             resultType="String">
-        SELECT F_CHK_APPAMT(#{pgMerchNo}, #{totAmt}) LIMIT_CHECK
+        SELECT F_CHK_APPAMT(#{pgMerchNo}, #{limitTotAmt}) LIMIT_CHECK
     </select>
 
     <!-- 거래번호 생성 -->
@@ -29,6 +29,58 @@
 
     <select id="findPgTidInfo"
             parameterType="orderDto"
+            resultType="payTidInfo">
+        /** Tid 정보 조회 **/
+        SELECT PGC.BIZ_NO
+        , PGC.CORP_NO
+        , PGC.comp_nm
+        , PGC.PG_MERCH_NO
+        , PGC.MERCH_NM
+        , PTM.PG_TID
+        , PTM.PG_TID_NM
+        , PTM.CERT_TYPE
+        , PGC.TAX_FLAG
+        , PTM.PAY_MTD_SEQ
+        , PTM.PAY_CHN_CATE
+        , PGC.APPREQ_CHK_AMT
+        , PTM.SVC_STAT
+        , PGC.SVC_STAT PG_SVC_STAT
+        FROM TB_PG_TID_MST PTM
+        ,(SELECT CMP.COMP_NM
+        , MST.PG_MERCH_NO
+        , MST.MERCH_NM
+        , CMP.TAX_FLAG
+        , MST.APP_CHK_AMT
+        , CMP.BIZ_NO
+        , CMP.CORP_NO
+        , MST.APPREQ_CHK_AMT
+        , MST.SVC_STAT
+        FROM TB_PG_MST MST
+        , TB_COMPANY CMP
+        WHERE MST.DEL_FLAG = 'N'
+        AND MST.SVC_STAT = '00'
+        AND CMP.DEL_FLAG = 'N'
+        AND CMP.USE_FLAG = 'Y'
+        AND MST.COMP_SEQ = CMP.COMP_SEQ) PGC
+        WHERE PTM.DEL_FLAG     = 'N'
+        AND PTM.SVC_STAT     = '00'
+        AND PTM.PG_MERCH_NO  = PGC.PG_MERCH_NO
+        <if test="pgMerchNo != null and pgMerchNo !='' and userCate == '01'">
+            AND PTM.PG_MERCH_NO = #{pgMerchNo}
+            <if test="pgTid != null and pgTid !='' ">
+                AND PTM.PG_TID = #{pgTid}
+            </if>
+        </if>
+        <if test="pgTid != null and pgTid !='' and userCate == '02' ">
+            AND PTM.PG_TID = #{pgTid}
+        </if>
+        <!--  <if test="pgTid != null and pgTid !='' ">
+              AND PTM.PG_TID = #{pgTid}
+          </if>-->
+    </select>
+
+    <select id="findPgTidInfo2"
+            parameterType="payDto"
             resultType="payTidInfo">
         /** Tid 정보 조회 **/
         SELECT PGC.BIZ_NO

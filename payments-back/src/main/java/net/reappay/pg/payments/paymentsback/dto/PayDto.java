@@ -38,6 +38,7 @@ public class PayDto {
     private String installment;
     private BigDecimal amount;
     private String productType;
+    private String productNm;
     private String merchantNo;
     private String authSendType;
     private String approvalSendType;
@@ -70,12 +71,16 @@ public class PayDto {
     private BigDecimal svcAmt;
     private BigDecimal splAmt;
     private BigDecimal totAmt;
+    private String limitTotAmt;
 
     private String tranType;
     private String ApprovalMsg;
     private String ApprovalCode;
+    private String resultStatus;
+    private String tranStep;
 
     private String userSeq;
+    private String userCate;
     private String PgSeq;
     private String custId;
     private String custName;
@@ -84,7 +89,7 @@ public class PayDto {
     private String custEmail;
     private String goodsName;
     private String goodsCode;
-    private String orderNumber;
+    private String orderSeq;
     private String pgMerchNo;
     private String pgTid;
 
@@ -103,5 +108,7 @@ public class PayDto {
     private String acqrStatus;
     private String dpstStatus;
     private String stlmStatus;
+    private String pgTidVat;
+
 
 }

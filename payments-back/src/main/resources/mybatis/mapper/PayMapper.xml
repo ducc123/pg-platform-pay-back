@@ -247,7 +247,7 @@
             #{custEmail},
             #{custPhone},
 
-            #{orderNumber},
+            #{orderSeq},
             #{merchantNo},
             #{pgMerchNo},
             #{storeId},
@@ -366,7 +366,7 @@
             #{custEmail},
             #{custPhone},
 
-            #{orderNumber},
+            #{orderSeq},
             #{merchantNo},
             #{pgMerchNo},
             #{storeId},
@@ -379,11 +379,10 @@
         )
     </insert>
 
-    <!--
     <insert id="addTransactionCardPg"
-            parameterType="tbTranCardPg">
+            parameterType="PayDto">
         /** tb_tran_cardpg_YYdd 저장 **/
-        INSERT INTO #{tableyd}
+        INSERT INTO TB_TRAN_CARDPG_${tableYd}
         (
             TRAN_SEQ
         , MASSAGETYPE
@@ -391,106 +390,93 @@
         , APP_DT
         , APP_TM
         , APP_NO
+
         , INSTALLMENT
         , TOT_AMT
         , PG_SEQ
         , PAY_CHN_CATE
         , TID
+
         , PG_TID
-        , CARD_CATE
         , ORDER_SEQ
         , TRAN_DT
         , TRAN_TM
         , TRAN_CATE
+
         , TAX_AMT
-        , SVC_AMT
         , CURRENCY
         , ISS_CD
         , ISS_NM
         , MERCH_NO
-        , ORG_MERCH_NO
+
         , RESULT_CD
         , RESULT_MSG
-        , ORG_APP_DD
-        , ORG_APP_NO
-        , CNCL_REASON
         , TRAN_STATUS
         , RESULT_STATUS
         , TRAN_STEP
-        , CNCL_DT
-        , PG_TID_PAY_AMT
-        , PG_TID_COMMISION
         , PG_TID_VAT
         , CLIENT_IP
-        , USER_TYPE
+
         , MEMB_USER_NO
+        , USER_TYPE
         , USER_ID
         , USER_NM
         , USER_MAIL
         , USER_PHONE1
-        , USER_ADDR
+
         , PRODUCT_TYPE
         , PRODUCT_NM
-        , TRAD_CHK_FLAG
-        , ACC_CHK_FLAG
         , INS_DT
         , INS_USER
-        , ORG_PG_SEQ
         , PG_MERCH_NO
         )
         VALUES
         (
             #{tranSeq}
         , #{tranType}
-        , #{cardNum}
+        , #{cardNo}
         , #{orderDate}
         , #{orderTime}
         , #{authNo}
+
         , #{installment}
         , #{totAmt}
         , #{pgSeq}
         , #{payChnCate}
-        , #{tid}
+        , #{pgSeq}
+
         , #{pgTid}
-        , #{cardCate}
         , #{orderSeq}
-        , #{tranDt}
-        , #{tranTm}
+        , #{tradeDate}
+        , #{tradeTime}
         , #{tranCate}
-        , #{taxAmt}
+
         , #{svcAmt}
-        , #{currency}
-        , #{issCd}
-        , #{issNm}
-        , #{merchNo}
-        , #{orgMerchNo}
-        , #{resultCd}
-        , #{resultMsg}
-        , #{orgAppDd}
-        , #{orgAppNo}
-        , #{cnclReason}
+        , #{currencyType}
+        , #{issCode}
+        , #{cardIssuNm}
+        , #{merchantNo}
+
+        , #{approvalCode}
+        , #{approvalMsg}
+
         , #{tranStatus}
         , #{resultStatus}
         , #{tranStep}
-        , #{cnclDt}
-        , #{pgTidPayAmt}
-        , #{pgTidCommision}
-        , #{pgTidVat}
-        , #{clientIp}
-        , #{userType}
-        , #{membUserNo}
-        , #{userId}
-        , #{userNm}
-        , #{userMail}
-        , #{userPhone1}
-        , #{userAddr}
+        , #{vatAmt}
+        , #{ipAddr}
+
+        , #{userSeq}
+        , #{userCate}
+        , #{custId}
+        , #{custName}
+        , #{custEmail}
+        , #{custPhone}
+
         , #{productType}
-        , #{productNm}
-        , #{tradChkFlag}
-        , #{accChkFlag}
+        , #{goodsName}
         , DATE_FORMAT(now(),'%Y%m%d%H%i%S')
-        , #{userNo}
-        , #{orgPgSeq}
+        , #{userSeq}
         , #{pgMerchNo}
         )
     </insert>
@@ -508,6 +494,5 @@
         WHERE 1 = 1
         AND TRAN_SEQ = #{tranSeq}
     </update>
-    -->
 
 </mapper>

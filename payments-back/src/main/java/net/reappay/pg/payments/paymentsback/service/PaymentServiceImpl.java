@@ -74,7 +74,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             responseObserver.onCompleted();
         } else if (orderDto.getGoodsName().isEmpty()){
             ResultCode       = "9999";
-            ResultMessage    = "상품명을 입력해주세요.";
+            ResultMessage    = "상품명을 확인해주세요.";
 
             //결과코드 , 메시지 설정
             orderDto.setResultCode(ResultCode);
@@ -90,7 +90,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             responseObserver.onCompleted();
         } else if (orderDto.getTotAmt().toString().isEmpty() || orderDto.getTotAmt()<100){
             ResultCode       = "9999";
-            ResultMessage    = "결제금액을 입력해주세요.";
+            ResultMessage    = "결제금액을 확인해주세요.";
 
             //결과코드 , 메시지 설정
             orderDto.setResultCode(ResultCode);
@@ -106,7 +106,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             responseObserver.onCompleted();
         } else if (orderDto.getOrderSeq().isEmpty()){
             ResultCode       = "9999";
-            ResultMessage    = "주문번호를 입력해주세요.";
+            ResultMessage    = "주문번호를 확인해주세요.";
 
             //결과코드 , 메시지 설정
             orderDto.setResultCode(ResultCode);
@@ -122,7 +122,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             responseObserver.onCompleted();
         } else if (orderDto.getOrderSeq().isEmpty()){
             ResultCode       = "9999";
-            ResultMessage    = "주문번호를 입력해주세요.";
+            ResultMessage    = "주문번호를 확인해주세요.";
 
             //결과코드 , 메시지 설정
             orderDto.setResultCode(ResultCode);
@@ -186,8 +186,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                 ResultMessage = "error : " + e.getMessage();
             }
 
-            //한도체크 ing....
-            payLimitAmtValidation(orderDto);
+
 
             //가맹점 주문정보 tb_approval 저장
             mybatisServiceImpl.addOrder(orderDto);
@@ -233,6 +232,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         log.debug("###인증결제 승인처리시작 ({} {})",datestr,timestr);
         String ResultCode       = "0000";
         String ResultMessage    = "정상적으로 결제가 완료되었습니다.";
+        String UserSeq          = "";
 
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
@@ -249,10 +249,10 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                     .setResultMessage(ResultMessage)
                     .build();
         }
-        
-        payDto.setTradeDate(datestr);
-        payDto.setTradeTime(timestr);
-        payDto.setTableYd("TB_TRAN_CARDPG_"+cardpgdatestr);
+
+        payDto.setTradeDate(datestr.replace("-","").replace(" ",""));
+        payDto.setTradeTime(timestr.replace(":","").replace(" ",""));
+        payDto.setTableYd(cardpgdatestr);
         
         //빈값들 중 기본값으로 0 혹은 N 설정
         payDto.setNotiTryCnt(0);
@@ -272,20 +272,23 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setCardNo(payDto.getCardNo().substring(0,6));
         Map<String, String> cardIss = mybatisServiceImpl.findCardIssCdByCardNoString(payDto);
 
+        //log.info("date==="+apprDto.getOrderDate().replace("-","").replace(" ",""));
         payDto.setIssCode(cardIss.get("ISS_CD"));
         payDto.setCardIssuNm(cardIss.get("CODE_NM"));
-        payDto.setOrderDate(apprDto.getOrderDate());
-        payDto.setOrderTime(apprDto.getOrderTime());
+        payDto.setOrderDate(apprDto.getOrderDate().replace("-","").replace(" ",""));
+        payDto.setOrderTime(apprDto.getOrderTime().replace(":",""));
         payDto.setGoodsCode(apprDto.getGoodsCode());
         payDto.setGoodsName(apprDto.getGoodsName());
         payDto.setCustName(apprDto.getCustName());
         payDto.setCustPhone(apprDto.getCustPhone());
         payDto.setCustIp(apprDto.getCustIp());
-        payDto.setOrderNumber(apprDto.getOrderSeq());
+        payDto.setOrderSeq(apprDto.getOrderSeq());
         payDto.setPgMerchNo(apprDto.getPgMerchNo());
         payDto.setPgTid(apprDto.getPgTid());
         payDto.setStatus(apprDto.getStatus());
         payDto.setTranStatus("00");
+        payDto.setResultStatus("00");
+        payDto.setTranStep("00");
         payDto.setTranType(apprDto.getTranType());
         payDto.setCustId(apprDto.getCustId());
         payDto.setCurrencyType("KRW");
@@ -293,9 +296,11 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setPayMethod(PayMethodEnum.CARD);
         payDto.setStoreId(apprDto.getStoreId());
         payDto.setTotAmt(apprDto.getTotAmt());
+        payDto.setProductType(apprDto.getProductType());
 
-        //금액계산
-        setAmt(payDto);
+        UserDto userDto = mybatisServiceImpl.findUserInfo(apprDto.getCustId());
+        payDto.setUserCate(userDto.getUserCate());
+        payDto.setCustName(userDto.getUserNm());
 
         //승인클라이언트 아이피정보 설정
         String cip              = null;
@@ -312,10 +317,21 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         }
         payDto.setIpAddr(cip);
 
-        String UserSeq  = "";
+        try {
+
+            /**
+             * 결제 validation
+             **/
+            //금액계산
+            setAmt(payDto);
+            //한도체크
+            payLimitAmtValidation(payDto);
+        } catch(NullPointerException e){
+            ResultCode = "9999";
+            ResultMessage = "정상적으로 결제가 완료되지 않았습니다.";
+        }
 
         try {
-            UserDto userDto = mybatisServiceImpl.findUserInfo(payDto.getCustId());
             UserSeq = userDto.getUserSeq();
             payDto.setUserSeq(UserSeq);
         } catch(NullPointerException e){
@@ -385,28 +401,25 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         BigDecimal splAmt   = totBd.subtract(vatBd);
         BigDecimal svcAmt   = totBd.subtract(splAmt.add(vatBd));
 
+        payDto.setLimitTotAmt(payDto.getTotAmt().toString());
         payDto.setVatAmt(vatBd);                // 부가세 금액 입력
         payDto.setSvcAmt(svcAmt);                // 과세 금액
         payDto.setSplAmt(splAmt);               // 공급가액
 
     }
 
-    public PaymentServiceImpl(MybatisServiceImpl mybatisServiceImpl) {
-        this.mybatisServiceImpl = mybatisServiceImpl;
-    }
-
     @Transactional
-    public void payLimitAmtValidation(OrderDto orderDto) {
-        //String limitAmt = mybatisServiceImpl.limitAmtCheck(orderDto);
-        String limitAmt = "0";
+    public void payLimitAmtValidation(PayDto payDto) {
+        String limitAmt = mybatisServiceImpl.limitAmtCheck(payDto);
+        //String limitAmt = "0";
         String ResultCode = "";
         String ResultMessage = "";
 
         log.debug("=======> limitAmt : {}", limitAmt);
 
         // 한도금액
-        if (limitAmt=="0") {
-            PayTidInfo payTidInfo = mybatisServiceImpl.findPgTidInfo(orderDto);
+        if (limitAmt.contains("0")) {
+            PayTidInfo payTidInfo = mybatisServiceImpl.findPgTidInfo2(payDto);
 
             // 건별 결제 한도
             int perLimitAmt = Integer.parseInt(payTidInfo.getAppreqChkAmt());
@@ -415,7 +428,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
 
             // 건별 한도가 0이 아니면 비교 (0인경우 한도x)
             if (perLimitAmt > 0) {
-                int payAmt = orderDto.getTotAmt();
+                int payAmt = payDto.getTotAmt().intValue();
 
                 log.debug("=======> payAmt : {}", payAmt);
 
@@ -445,7 +458,11 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             throw new PgRequestException("error : "+ResultMessage,ResultCode);
 
         }
+    }
 
+
+    public PaymentServiceImpl(MybatisServiceImpl mybatisServiceImpl) {
+        this.mybatisServiceImpl = mybatisServiceImpl;
     }
 
 }

@@ -1,6 +1,5 @@
 package net.reappay.pg.payments.paymentsback.service;
 
-import lombok.RequiredArgsConstructor;
 import net.reappay.pg.payments.paymentsback.dao.MybatisDao;
 import net.reappay.pg.payments.paymentsback.dto.ApprDto;
 import net.reappay.pg.payments.paymentsback.dto.OrderDto;
@@ -8,10 +7,9 @@ import net.reappay.pg.payments.paymentsback.dto.PayDto;
 import net.reappay.pg.payments.paymentsback.dto.UserDto;
 import net.reappay.pg.payments.paymentsback.entity.PayTerminalInfo;
 import net.reappay.pg.payments.paymentsback.entity.PayTidInfo;
-import org.springframework.dao.DataAccessException;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import java.util.Map;
 
 @RequiredArgsConstructor

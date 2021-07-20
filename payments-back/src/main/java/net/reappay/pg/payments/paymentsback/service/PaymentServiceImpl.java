@@ -1,7 +1,5 @@
 package net.reappay.pg.payments.paymentsback.service;
 
-import io.grpc.stub.StreamObserver;
-import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
 import net.reappay.pg.payments.paymentsback.dto.ApprDto;
 import net.reappay.pg.payments.paymentsback.dto.OrderDto;
@@ -12,13 +10,14 @@ import net.reappay.pg.payments.paymentsback.entity.PayTidInfo;
 import net.reappay.pg.payments.paymentsback.enums.PayMethodEnum;
 import net.reappay.pg.payments.paymentsback.exception.PgRequestException;
 import net.reappay.pg.payments.paymentsback.proto.*;
+
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-
+import io.grpc.stub.StreamObserver;
+import lombok.extern.slf4j.Slf4j;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
@@ -186,8 +185,6 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                 ResultMessage = "error : " + e.getMessage();
             }
 
-
-
             //가맹점 주문정보 tb_approval 저장
             mybatisServiceImpl.addOrder(orderDto);
 
@@ -244,10 +241,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             ResultCode = "9999";
             ResultMessage = "이미 결제가 완료된 거래입니다";
 
-            PaymentResponse response = PaymentResponse.newBuilder()
-                    .setResultCode(ResultCode)
-                    .setResultMessage(ResultMessage)
-                    .build();
+            this.payend(ResultCode,ResultMessage);
         }
 
         payDto.setTradeDate(datestr.replace("-","").replace(" ",""));
@@ -310,10 +304,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             ResultCode = "9999";
             ResultMessage = "error : "+e.getMessage();
 
-            PaymentResponse response = PaymentResponse.newBuilder()
-                    .setResultCode(ResultCode)
-                    .setResultMessage(ResultMessage)
-                    .build();
+            this.payend(ResultCode,ResultMessage);
         }
         payDto.setIpAddr(cip);
 
@@ -338,10 +329,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             ResultCode = "9999";
             ResultMessage = "회원정보를 확인해주세요";
 
-            PaymentResponse response = PaymentResponse.newBuilder()
-                    .setResultCode(ResultCode)
-                    .setResultMessage(ResultMessage)
-                    .build();
+            this.payend(ResultCode,ResultMessage);
         }
 
         //승인완료 후 승인정보받아서 tb_approval 업데이트
@@ -405,13 +393,19 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setVatAmt(vatBd);                // 부가세 금액 입력
         payDto.setSvcAmt(svcAmt);                // 과세 금액
         payDto.setSplAmt(splAmt);               // 공급가액
+        
+        if (payDto.getTotAmt().intValue()==0) {
+            String ResultCode = "3001";
+            String ResultMessage = "결제금액을 입력해주세요";
+
+            this.payend(ResultCode,ResultMessage);
+        }
 
     }
 
     @Transactional
     public void payLimitAmtValidation(PayDto payDto) {
         String limitAmt = mybatisServiceImpl.limitAmtCheck(payDto);
-        //String limitAmt = "0";
         String ResultCode = "";
         String ResultMessage = "";
 
@@ -429,8 +423,6 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             // 건별 한도가 0이 아니면 비교 (0인경우 한도x)
             if (perLimitAmt > 0) {
                 int payAmt = payDto.getTotAmt().intValue();
-
-                log.debug("=======> payAmt : {}", payAmt);
 
                 // 결제 금액이 건 별 결제 한도보다 많은 경우
                 if (payAmt > perLimitAmt) {
@@ -455,12 +447,18 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                 ResultMessage = "결제한도를 초과하였습니다.";
             }
 
-            throw new PgRequestException("error : "+ResultMessage,ResultCode);
+            this.payend(ResultCode,ResultMessage);
 
         }
     }
 
 
+    public void payend(String ResultCode,String ResultMessage){
+        PaymentResponse response = PaymentResponse.newBuilder()
+                .setResultCode(ResultCode)
+                .setResultMessage(ResultMessage)
+                .build();
+    }
     public PaymentServiceImpl(MybatisServiceImpl mybatisServiceImpl) {
         this.mybatisServiceImpl = mybatisServiceImpl;
     }

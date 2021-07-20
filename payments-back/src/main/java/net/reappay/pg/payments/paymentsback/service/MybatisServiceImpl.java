@@ -63,6 +63,11 @@ public class MybatisServiceImpl {
         return cardIss;
     }
 
+    public int findInstallmentMonthByNo(PayDto payDto) {
+        int installmentMax= mybatisDao.findInstallmentMonthByNo(payDto);
+        return installmentMax;
+    }
+
     public void addOrder(OrderDto orderDto) { mybatisDao.addOrder(orderDto); }
     public void addApproval(PayDto payDto) {
         mybatisDao.addApproval(payDto);

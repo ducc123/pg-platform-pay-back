@@ -499,4 +499,11 @@
         AND TRAN_SEQ = #{tranSeq}
     </update>
 
+    <select id="findInstallmentMonthByNo" parameterType="PayDto" resultType="int">
+        /** 가맹점 할부 가능 개월 수 조회 **/
+        SELECT INSTALLMENT_MONTH
+        FROM TB_PG_MST
+        WHERE PG_MERCH_NO = #{pgMerchNo}
+    </select>
+
 </mapper>

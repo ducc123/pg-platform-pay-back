@@ -19,6 +19,8 @@ public interface MybatisDao {
 
     String getTranSeq() throws DataAccessException;
 
+    int findInstallmentMonthByNo(PayDto payDto) throws DataAccessException;
+
     /**
      * 회원정보 가져오기
      */

@@ -317,12 +317,17 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         try {
 
             /**
-             * 결제 validation
+             * 결제 전 validation
              **/
             //금액계산
             setAmt(payDto);
+
             //한도체크
             payLimitAmtValidation(payDto);
+
+            //최대 할부개월수체크
+            payInstallmentValidation(payDto);
+
         } catch(NullPointerException e){
             ResultCode = "9999";
             ResultMessage = "정상적으로 결제가 완료되지 않았습니다.";
@@ -461,6 +466,49 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
 
             throw new PgRequestException(ResultMessage,ResultCode);
 
+        }
+    }
+
+    /**
+     * [Approval] 할부 개월 validation
+     *
+     * @param payDto
+     */
+    public void payInstallmentValidation(PayDto payDto) {
+        // 요청 할부 개월
+        String reqInstallment = payDto.getInstallment();
+        String pgMerchNo = payDto.getPgMerchNo();
+        String ResultCode = "";
+        String ResultMessage = "";
+
+        // 최대 할부 개월
+        int maxInstallment = mybatisServiceImpl.findInstallmentMonthByNo(payDto);
+        log.debug("최대할부 개월수 : {}",maxInstallment);
+
+        // 할부(x)
+        if (reqInstallment != null && reqInstallment!="00") {
+
+            // 할부가 불가능한 경우
+            if (maxInstallment == 0) {
+                log.error("### "+6002 + " : 할부가 불가능 합니다.");
+                ResultCode = "6002";
+                ResultMessage = "할부가 불가능 합니다";
+                throw new PgRequestException(ResultMessage,ResultCode);
+            } else {
+                int reqInstall = Integer.parseInt(reqInstallment);
+
+                // 요청 할부 개월이 가능한 할부 개월 수 보다 큰 경우
+                if (reqInstall > maxInstallment) {
+                    StringBuffer sb = new StringBuffer("최대 할부 개월은 ");
+                    sb.append(reqInstall);
+                    sb.append("개월 입니다.");
+                    log.error("### "+6003 + " : "+sb.toString());
+
+                    ResultCode = "6003";
+                    ResultMessage = sb.toString();
+                    throw new PgRequestException(ResultMessage,ResultCode);
+                }
+            }
         }
     }
 

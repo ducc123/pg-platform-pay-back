@@ -23,6 +23,7 @@ import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -395,6 +396,11 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         log.debug("###인증결제 승인처리끝 ({} {})",datestr1,timestr1);
     }
 
+    /**
+     * [Approval] 결제금액 validation
+     *
+     * @param payDto
+     */
     @Transactional
     public void setAmt(PayDto payDto){
 
@@ -407,8 +413,8 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setVatAmt(vatBd);                // 부가세 금액 입력
         payDto.setSvcAmt(svcAmt);                // 과세 금액
         payDto.setSplAmt(splAmt);               // 공급가액
-        
-        if (payDto.getTotAmt().intValue()==0) {
+
+        if (payDto.getTotAmt().intValue() <= 0 || payDto.getTotAmt().intValue() != (splAmt.intValue() + vatBd.intValue())) {
             String ResultCode = "3001";
             String ResultMessage = "결제금액을 입력해주세요";
 
@@ -420,12 +426,18 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
 
     }
 
+    /**
+     * [Approval] 한도 validation
+     *
+     * @param payDto
+     */
     @Transactional
     public void payLimitAmtValidation(PayDto payDto) {
         String limitAmt = mybatisServiceImpl.limitAmtCheck(payDto);
         String ResultCode = "";
         String ResultMessage = "";
 
+        log.debug("### 한도 Validation");
         log.debug("=======> limitAmt : {}", limitAmt);
 
         // 한도금액
@@ -474,12 +486,15 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
      *
      * @param payDto
      */
+    @Transactional
     public void payInstallmentValidation(PayDto payDto) {
         // 요청 할부 개월
         String reqInstallment = payDto.getInstallment();
         String pgMerchNo = payDto.getPgMerchNo();
         String ResultCode = "";
         String ResultMessage = "";
+
+        log.debug("### 결제 할부 개월 Validation");
 
         // 최대 할부 개월
         int maxInstallment = mybatisServiceImpl.findInstallmentMonthByNo(payDto);

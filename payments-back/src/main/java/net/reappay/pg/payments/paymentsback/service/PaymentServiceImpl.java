@@ -222,12 +222,12 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         Calendar cal            = Calendar.getInstance();
         SimpleDateFormat sdf    = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat sdf2   = new SimpleDateFormat("HH:mm:ss");
-        SimpleDateFormat sdf3   = new SimpleDateFormat("yyMM");
+        SimpleDateFormat sdf3   = new SimpleDateFormat("YYMM");
         String datestr          = sdf.format(cal.getTime());
         String timestr          = sdf2.format(cal.getTime());
         String cardpgdatestr    = sdf3.format(cal.getTime());
 
-        log.debug("###인증결제 승인처리시작 ({} {})",datestr,timestr);
+        log.debug("###인증결제 승인처리시작 ({} {} {})",datestr,timestr,cardpgdatestr);
         String ResultCode       = "0000";
         String ResultMessage    = "정상적으로 결제가 완료되었습니다.";
         String UserSeq          = "";
@@ -294,7 +294,11 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setPayMethod(PayMethodEnum.CARD);
         payDto.setStoreId(apprDto.getStoreId());
         payDto.setTotAmt(apprDto.getTotAmt());
-        payDto.setProductType(apprDto.getProductType());
+        if (apprDto.getProductType()!="") {
+           payDto.setProductType("0");
+        } else {
+           payDto.setProductType(apprDto.getProductType());
+        }
 
         UserDto userDto = mybatisServiceImpl.findUserInfo(apprDto.getCustId());
         payDto.setUserCate(userDto.getUserCate());
@@ -370,8 +374,23 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             mybatisServiceImpl.addTransactionError(payDto);
         }
 
-        //tb_tran_cardpg_YYmm 저장
-        mybatisServiceImpl.addTransactionCardPg(payDto);
+        log.info("ddddd"+payDto.getTableYd());
+
+        int CardPgCount = mybatisServiceImpl.countTranCardPgTranSeq(payDto);
+        if (CardPgCount>0) {
+            ResultCode = "9999";
+            ResultMessage = "이미 결제된 거래입니다";
+
+            PaymentResponse response = PaymentResponse.newBuilder()
+                    .setResultCode(ResultCode)
+                    .setResultMessage(ResultMessage)
+                    .build();
+        } else {
+            //tb_tran_cardpg_YYmm 저장
+
+            mybatisServiceImpl.addTransactionCardPg(payDto);
+        }
+
         
         //기본 response처리
         PaymentResponse response = PaymentResponse.newBuilder()

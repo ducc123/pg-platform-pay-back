@@ -29,7 +29,6 @@ class PayOrderTests {
                 .setCustPhone("01022221111")
                 .setGoodsName("상품명%^%^&&!~~")
                 .setGoodsCode("123456")
-                .setProductType("1")
                 .setTotAmt(100000)
                 .setInstallment("0")
                 .setOrderSeq(randomStr)

@@ -43,6 +43,11 @@ public class MybatisServiceImpl {
         return TranSeqCount;
     }
 
+    public int countTranCardPgTranSeq(PayDto payDto){
+        int TranSeqCount= mybatisDao.countTranCardPgTranSeq(payDto);
+        return TranSeqCount;
+    }
+
     public PayTidInfo findPgTidInfo(OrderDto orderDto){
         PayTidInfo payTidInfo= mybatisDao.findPgTidInfo(orderDto);
         return payTidInfo;

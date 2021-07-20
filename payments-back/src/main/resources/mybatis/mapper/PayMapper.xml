@@ -9,6 +9,14 @@
         WHERE   tran_seq = #{tranSeq}
     </select>
 
+    <select id="countTranCardPgTranSeq" parameterType="payDto" resultType="int">
+        select
+            count(*) as tt
+        FROM    TB_TRAN_CARDPG_${tableYd}
+        WHERE   tran_seq = #{tranSeq} and MASSAGETYPE=10
+    </select>
+
+
     <select id="findApprovalTranSeq" parameterType="string" resultType="ApprDto">
         select
                order_date,

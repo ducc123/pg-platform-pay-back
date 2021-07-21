@@ -190,16 +190,12 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
 
         log.debug("###인증결제 승인처리시작 ({} {} {})",datestr,timestr,cardpgdatestr);
         String UserSeq;
-        String ResultCode = "";
-        String ResultMessage = "";
+        String ResultCode = ResultCodeEnum.NORMAL_RESULT.code();
+        String ResultMessage = "정상적으로 결제가 완료되었습니다.";
 
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         PayDto payDto           = modelMapper.map(request, PayDto.class);
-
-        //결제실패( 원청사 실패로 내려오는 경우에 먼저 ResultCode ResultMessage 설정 )
-        ResultCode = payDto.getResultCode();
-        ResultMessage = payDto.getResultMsg();
 
         //중복승인인지 확인함 refresh 되는 상황을 처리하기 위해 이미 결제된 거래이면 그냥 실패거래로 처리
         int tranSeqCount = mybatisDao.countApprovalTranSeq(payDto.getTranSeq());
@@ -361,8 +357,8 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                 .setIssCd(payDto.getCardCode())
                 .setIssNm(payDto.getCardIssuNm())
                 .setPayAmt(payDto.getTotAmt().intValue())
-                .setPgTidPayAmt("0")
-                .setPgTidCommision("0")
+                .setPgTidPayAmt(payDto.getPgTidPayAmt())
+                .setPgTidCommision(payDto.getPgTidCommision())
                 .build();
 
         responseObserver.onNext(response);

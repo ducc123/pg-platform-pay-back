@@ -1,6 +1,7 @@
 package net.reappay.pg.payments.paymentsback.service;
 
 import net.devh.boot.grpc.server.service.GrpcService;
+import net.reappay.pg.payments.paymentsback.dao.MybatisDao;
 import net.reappay.pg.payments.paymentsback.dto.ApprDto;
 import net.reappay.pg.payments.paymentsback.dto.OrderDto;
 import net.reappay.pg.payments.paymentsback.dto.PayDto;
@@ -29,8 +30,7 @@ import java.util.Map;
 @Service("PaymentService")
 public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBase {
 
-    @Resource(name="MybatisService")
-    private final MybatisServiceImpl mybatisServiceImpl;
+    private final MybatisDao mybatisDao;
 
     @Resource(name="ValidationService")
     private final ValidationServiceImpl validationService;
@@ -93,7 +93,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         } else {
 
             //transeq 생성해서 저장
-            String tranSeq = mybatisServiceImpl.getTranSeq();
+            String tranSeq = mybatisDao.getTranSeq();
             orderDto.setTranSeq(tranSeq);
 
             //주문일 주문시간설정
@@ -109,7 +109,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
 
             try {
                 //회원정보 가져오기
-                UserDto userDto = mybatisServiceImpl.findUserInfo(orderDto.getCustId());
+                UserDto userDto = mybatisDao.findUserInfo(orderDto.getCustId());
                 orderDto.setUserCate(userDto.getUserCate());
 
                 PgMerchNo = userDto.getPgMerchNo();
@@ -119,11 +119,11 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                 orderDto.setPgTid(PgTid);
                 log.info("PgMerchNo=============" + PgMerchNo);
                 log.info("PgTid=============" + PgTid);
-                PayTidInfo payTidInfo = mybatisServiceImpl.findPgTidInfo(orderDto);
+                PayTidInfo payTidInfo = mybatisDao.findPgTidInfo(orderDto);
                 orderDto.setPayMtdSeq(payTidInfo.getPayMtdSeq());
 
                 //터미널 정보가져오기
-                PayTerminalInfo payTerminalInfo = mybatisServiceImpl.findTerminal(orderDto);
+                PayTerminalInfo payTerminalInfo = mybatisDao.findTerminal(orderDto);
                 orderDto.setStoreId(payTerminalInfo.getTerminalNo());
 
                 orderDto.setPgMerchNo(PgMerchNo);
@@ -147,7 +147,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             }
 
             //가맹점 주문정보 tb_approval 저장
-            mybatisServiceImpl.addOrder(orderDto);
+            mybatisDao.addOrder(orderDto);
 
             //결과코드 , 메시지 설정
             orderDto.setResultCode(ResultCode);
@@ -202,7 +202,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         ResultMessage = payDto.getResultMsg();
 
         //중복승인인지 확인함 refresh 되는 상황을 처리하기 위해 이미 결제된 거래이면 그냥 실패거래로 처리
-        int tranSeqCount = mybatisServiceImpl.countApprovalTranSeq(payDto.getTranSeq());
+        int tranSeqCount = mybatisDao.countApprovalTranSeq(payDto.getTranSeq());
         if (tranSeqCount>0) {
             ResultCode = ResultCodeEnum.FAIL_RESULT.code();
             ResultMessage = "이미 결제된 거래입니다.";
@@ -228,7 +228,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setResultStatus("00");
         payDto.setCurrencyType("KRW");
         payDto.setMerchantNo("ksnet");
-        ApprDto apprDto = mybatisServiceImpl.findApprovalTranSeq(payDto.getTranSeq());
+        ApprDto apprDto = mybatisDao.findApprovalTranSeq(payDto.getTranSeq());
         payDto.setTranStatus(TranStatusEnum.APPROVAL.code());
         payDto.setTranCate(TranTypeEnum.APPROVAL_REQUEST.code());
         payDto.setTranStep(TranStepEnum.TRAN_COMPLETE.code());
@@ -238,7 +238,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
          * 주문정보값으로 payDto 설정
          */
         payDto.setCardNo(payDto.getCardNo().substring(0,6));
-        Map<String, String> cardIss = mybatisServiceImpl.findCardIssCdByCardNoString(payDto);
+        Map<String, String> cardIss = mybatisDao.findCardIssCdByCardNoString(payDto);
         payDto.setIssCode(cardIss.get("ISS_CD"));
         payDto.setCardIssuNm(cardIss.get("CODE_NM"));
         payDto.setOrderDate(apprDto.getOrderDate().replace("-","").replace(" ",""));
@@ -274,7 +274,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
          * 회원정보 validation
          **/
         try {
-            UserDto userDto = mybatisServiceImpl.findUserInfo(apprDto.getCustId());
+            UserDto userDto = mybatisDao.findUserInfo(apprDto.getCustId());
             payDto.setUserCate(userDto.getUserCate());
             payDto.setCustName(userDto.getUserNm());
 
@@ -322,7 +322,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         /**
          * 승인완료 후 승인정보받아서 tb_approval 업데이트
          **/
-        mybatisServiceImpl.addApproval(payDto);
+        mybatisDao.addApproval(payDto);
 
         payDto.setApprovalCode(ResultCode);
         payDto.setApprovalMsg(ResultMessage);
@@ -333,11 +333,11 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             log.debug("인증결제성공({}) 결제결과 = code: {} msg: {}",payDto.getTranSeq(),ResultCode,ResultMessage);
 
             //승인정보 tb_transaction 저장
-            mybatisServiceImpl.addTransaction(payDto);
+            mybatisDao.addTransaction(payDto);
             //승인정보 tb_transaction_card 저장
-            mybatisServiceImpl.addTransactionCard(payDto);
+            mybatisDao.addTransactionCard(payDto);
             //승인정보 tb_tran_cardpg 저장
-            mybatisServiceImpl.addTransactionCardPg(payDto);
+            mybatisDao.addTransactionCardPg(payDto);
 
         } else if(ResultCode==ResultCodeEnum.NETWORK_CANCEL.code()) {
         //망상취소결제인 경우
@@ -346,7 +346,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         //결제실패인 경우
             log.debug("인증결제실패({}) 결제결과 = code: {} msg: {}",payDto.getTranSeq(),ResultCode,ResultMessage);
             //승인정보 tb_transaction_error 저장(승인실패시)
-            mybatisServiceImpl.addTransactionError(payDto);
+            mybatisDao.addTransactionError(payDto);
         }
 
         /**
@@ -376,8 +376,8 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         log.debug("###인증결제 승인처리끝 ({} {})",datestr1,timestr1);
     }
 
-    public PaymentServiceImpl(MybatisServiceImpl mybatisServiceImpl, ValidationServiceImpl validationService) {
-        this.mybatisServiceImpl = mybatisServiceImpl;
+    public PaymentServiceImpl(MybatisDao mybatisDao, ValidationServiceImpl validationService) {
+        this.mybatisDao = mybatisDao;
         this.validationService = validationService;
     }
 

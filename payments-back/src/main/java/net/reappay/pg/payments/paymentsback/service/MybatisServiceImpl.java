@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 @RequiredArgsConstructor
-@Service
+@Service("MybatisService")
 public class MybatisServiceImpl {
 
     private final MybatisDao mybatisDao;

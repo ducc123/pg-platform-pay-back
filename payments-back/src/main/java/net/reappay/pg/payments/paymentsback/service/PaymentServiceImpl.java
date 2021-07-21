@@ -8,16 +8,16 @@ import net.reappay.pg.payments.paymentsback.dto.UserDto;
 import net.reappay.pg.payments.paymentsback.entity.PayTerminalInfo;
 import net.reappay.pg.payments.paymentsback.entity.PayTidInfo;
 import net.reappay.pg.payments.paymentsback.enums.*;
-import net.reappay.pg.payments.paymentsback.exception.PgRequestException;
 import net.reappay.pg.payments.paymentsback.proto.*;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.Inet4Address;
@@ -28,8 +28,10 @@ import java.util.Map;
 
 @Slf4j
 @GrpcService
+@Service("PaymentService")
 public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBase {
 
+    @Resource(name="MybatisService")
     private final MybatisServiceImpl mybatisServiceImpl;
 
     //주문처리 서비스@20210719

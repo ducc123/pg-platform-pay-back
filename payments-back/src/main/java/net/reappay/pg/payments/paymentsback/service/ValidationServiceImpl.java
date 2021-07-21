@@ -1,13 +1,13 @@
 package net.reappay.pg.payments.paymentsback.service;
 
 import lombok.extern.slf4j.Slf4j;
+import net.reappay.pg.payments.paymentsback.dao.MybatisDao;
 import net.reappay.pg.payments.paymentsback.dto.PayDto;
 import net.reappay.pg.payments.paymentsback.entity.PayTidInfo;
 import net.reappay.pg.payments.paymentsback.entity.PgTidCommission;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
@@ -15,8 +15,7 @@ import java.math.RoundingMode;
 @Service("ValidationService")
 public class ValidationServiceImpl {
 
-    @Resource(name="MybatisService")
-    private final MybatisServiceImpl mybatisServiceImpl;
+    private final MybatisDao mybatisDao;
 
     /**
      * [Approval] 결제금액 validation
@@ -56,7 +55,7 @@ public class ValidationServiceImpl {
      */
     @Transactional
     public String payLimitAmtValidation(PayDto payDto) {
-        String limitAmt = mybatisServiceImpl.limitAmtCheck(payDto);
+        String limitAmt = mybatisDao.limitAmtCheck(payDto);
         String ResultMessage = "";
 
         log.debug("### 한도 Validation");
@@ -64,7 +63,7 @@ public class ValidationServiceImpl {
 
         // 한도금액
         if (limitAmt.equals("0")) {
-            PayTidInfo payTidInfo = mybatisServiceImpl.findPgTidInfo2(payDto);
+            PayTidInfo payTidInfo = mybatisDao.findPgTidInfo2(payDto);
 
             // 건별 결제 한도
             int perLimitAmt = Integer.parseInt(payTidInfo.getAppreqChkAmt());
@@ -114,7 +113,7 @@ public class ValidationServiceImpl {
         log.debug("### 결제 할부 개월 Validation");
 
         // 최대 할부 개월
-        int maxInstallment = mybatisServiceImpl.findInstallmentMonthByNo(payDto);
+        int maxInstallment = mybatisDao.findInstallmentMonthByNo(payDto);
         log.debug("최대할부 개월수 : {}개월",maxInstallment);
 
         // 할부(x)
@@ -147,7 +146,7 @@ public class ValidationServiceImpl {
      * Comission 계산
      */
     public void setCommission(PayDto payDto) {
-        PgTidCommission pgTidCommission = mybatisServiceImpl.findCommissionByPgTid(payDto);
+        PgTidCommission pgTidCommission = mybatisDao.findCommissionByPgTid(payDto);
 
         String tidCommission = pgTidCommission.getCommission();
 
@@ -177,7 +176,7 @@ public class ValidationServiceImpl {
     }
 
 
-    public ValidationServiceImpl(MybatisServiceImpl mybatisServiceImpl) {
-        this.mybatisServiceImpl = mybatisServiceImpl;
+    public ValidationServiceImpl(MybatisDao mybatisDao) {
+        this.mybatisDao = mybatisDao;
     }
 }

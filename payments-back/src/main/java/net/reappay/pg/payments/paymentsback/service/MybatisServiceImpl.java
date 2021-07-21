@@ -9,6 +9,8 @@ import net.reappay.pg.payments.paymentsback.entity.PayTerminalInfo;
 import net.reappay.pg.payments.paymentsback.entity.PayTidInfo;
 
 import lombok.RequiredArgsConstructor;
+import net.reappay.pg.payments.paymentsback.entity.PgTidCommission;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import java.util.Map;
 
@@ -66,6 +68,11 @@ public class MybatisServiceImpl {
     public int findInstallmentMonthByNo(PayDto payDto) {
         int installmentMax= mybatisDao.findInstallmentMonthByNo(payDto);
         return installmentMax;
+    }
+
+    public PgTidCommission findCommissionByPgTid(PayDto payDto) {
+        PgTidCommission pgTidCommission = mybatisDao.findCommissionByPgTid(payDto);
+        return pgTidCommission;
     }
 
     public void addOrder(OrderDto orderDto) { mybatisDao.addOrder(orderDto); }

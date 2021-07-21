@@ -3,6 +3,7 @@ package net.reappay.pg.payments.paymentsback.service;
 import lombok.extern.slf4j.Slf4j;
 import net.reappay.pg.payments.paymentsback.dto.PayDto;
 import net.reappay.pg.payments.paymentsback.entity.PayTidInfo;
+import net.reappay.pg.payments.paymentsback.entity.PgTidCommission;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -141,6 +142,40 @@ public class ValidationServiceImpl {
         }
         return ResultMessage;
     }
+
+    /**
+     * Comission 계산
+     */
+    public void setCommission(PayDto payDto) {
+        PgTidCommission pgTidCommission = mybatisServiceImpl.findCommissionByPgTid(payDto);
+
+        String tidCommission = pgTidCommission.getCommission();
+
+        // 커미션 비율
+        BigDecimal commissionRate = new BigDecimal(tidCommission)
+                .divide(new BigDecimal("100"));
+
+        // 결제 금액
+        BigDecimal totAmt = payDto.getTotAmt();
+
+        // 가맹점 지급 수수료 금액
+        BigDecimal commissionAmt = totAmt.multiply(commissionRate)
+                .setScale(0, RoundingMode.FLOOR);
+
+        // 가맹점 지급 수수료 부가세
+        BigDecimal commissionVat = commissionAmt.multiply(new BigDecimal(0.1))
+                .setScale(0, RoundingMode.DOWN);
+
+        // 가맹점 지급 금액
+        BigDecimal tidPayAmt = totAmt.subtract(commissionAmt)
+                .subtract(commissionVat)
+                .setScale(0 ,RoundingMode.FLOOR);
+
+        payDto.setPgTidPayAmt(String.valueOf(tidPayAmt));
+        payDto.setPgTidCommision(String.valueOf(commissionAmt));
+        payDto.setPgTidVat(String.valueOf(commissionVat));
+    }
+
 
     public ValidationServiceImpl(MybatisServiceImpl mybatisServiceImpl) {
         this.mybatisServiceImpl = mybatisServiceImpl;

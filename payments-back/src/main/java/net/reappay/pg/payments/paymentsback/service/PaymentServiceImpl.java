@@ -36,7 +36,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
     private final ValidationServiceImpl validationService;
 
     //주문처리 서비스@20210719
-    @Transactional(rollbackFor = {RuntimeException.class, Exception.class})
+    @Transactional
     @Override
     public void orderCall(OrderRequest request, StreamObserver<OrderResponse> responseObserver) {
 
@@ -55,11 +55,11 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         //PgMerchNo PgTid설정
         String PgMerchNo;
         String PgTid=null;
-        String ResultCode = "0000";
+        String ResultCode = ResultCodeEnum.NORMAL_RESULT.code();
         String ResultMessage = "정상적으로 주문이 완료되었습니다.";
 
         if (orderDto.getCustId().isEmpty()){
-            ResultCode       = "9999";
+            ResultCode       = ResultCodeEnum.NETWORK_CANCEL.code();
             ResultMessage    = "회원아이디를 확인해주세요.";
 
             //결과코드 , 메시지 설정
@@ -67,7 +67,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             orderDto.setResultMessage(ResultMessage);
             log.debug("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
         } else if (orderDto.getGoodsName().isEmpty()){
-            ResultCode       = "9999";
+            ResultCode       = ResultCodeEnum.NETWORK_CANCEL.code();
             ResultMessage    = "상품명을 확인해주세요.";
 
             //결과코드 , 메시지 설정
@@ -75,23 +75,15 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             orderDto.setResultMessage(ResultMessage);
             log.debug("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
         } else if (orderDto.getTotAmt().toString().isEmpty() || orderDto.getTotAmt()<100){
-            ResultCode       = "9999";
+            ResultCode       = ResultCodeEnum.NETWORK_CANCEL.code();
             ResultMessage    = "결제금액을 확인해주세요.";
 
             //결과코드 , 메시지 설정
             orderDto.setResultCode(ResultCode);
             orderDto.setResultMessage(ResultMessage);
             log.debug("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
-        } else if (orderDto.getOrderSeq().length()==0){
-            ResultCode       = "9999";
-            ResultMessage    = "주문번호를 확인해주세요.";
-
-            //결과코드 , 메시지 설정
-            orderDto.setResultCode(ResultCode);
-            orderDto.setResultMessage(ResultMessage);
-            log.debug("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
-        } else if (orderDto.getOrderSeq().isEmpty()){
-            ResultCode       = "9999";
+        } else if (orderDto.getOrderSeq().length()==0 || orderDto.getOrderSeq().isEmpty()){
+            ResultCode       = ResultCodeEnum.NETWORK_CANCEL.code();
             ResultMessage    = "주문번호를 확인해주세요.";
 
             //결과코드 , 메시지 설정
@@ -138,7 +130,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                 orderDto.setPgTid(PgTid);
 
             } catch (NullPointerException e) {
-                ResultCode = "9999";
+                ResultCode = ResultCodeEnum.NETWORK_CANCEL.code();
                 ResultMessage = "정상적인 회원정보가 아닙니다";
                 log.error("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
             }
@@ -149,7 +141,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
                 cip = Inet4Address.getLocalHost().getHostAddress();
                 orderDto.setCustIp(cip);
             } catch (UnknownHostException e) {
-                ResultCode = "9999";
+                ResultCode = ResultCodeEnum.NETWORK_CANCEL.code();
                 ResultMessage = "error : " + e.getMessage();
                 log.debug("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
             }
@@ -183,7 +175,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
     }
 
     //승인처리 서비스
-    @Transactional(rollbackFor = {RuntimeException.class, Exception.class})
+    @Transactional
     @Override
     public void paymentCall(PaymentRequest request, StreamObserver<PaymentResponse> responseObserver) {
 
@@ -197,18 +189,22 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         String cardpgdatestr    = sdf3.format(cal.getTime());
 
         log.debug("###인증결제 승인처리시작 ({} {} {})",datestr,timestr,cardpgdatestr);
-        String ResultCode       = "0000";
-        String ResultMessage    = "정상적으로 결제가 완료되었습니다.";
         String UserSeq;
+        String ResultCode = "";
+        String ResultMessage = "";
 
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         PayDto payDto           = modelMapper.map(request, PayDto.class);
 
-        //중복승인인지 확인함 refresh 되는 상황을 처리하기 위해
+        //결제실패( 원청사 실패로 내려오는 경우에 먼저 ResultCode ResultMessage 설정 )
+        ResultCode = payDto.getResultCode();
+        ResultMessage = payDto.getResultMsg();
+
+        //중복승인인지 확인함 refresh 되는 상황을 처리하기 위해 이미 결제된 거래이면 그냥 실패거래로 처리
         int tranSeqCount = mybatisServiceImpl.countApprovalTranSeq(payDto.getTranSeq());
         if (tranSeqCount>0) {
-            ResultCode = "9000";
+            ResultCode = ResultCodeEnum.FAIL_RESULT.code();
             ResultMessage = "이미 결제된 거래입니다.";
             log.debug("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
         }
@@ -268,7 +264,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         try {
             cip = Inet4Address.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
-            ResultCode = "9000";
+            ResultCode = ResultCodeEnum.NETWORK_CANCEL.code();
             ResultMessage = "error : "+e.getMessage();
             log.error("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
         }
@@ -285,7 +281,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             UserSeq = userDto.getUserSeq();
             payDto.setUserSeq(UserSeq);
         } catch(NullPointerException e){
-            ResultCode = "9000";
+            ResultCode = ResultCodeEnum.NETWORK_CANCEL.code();
             ResultMessage = "회원정보를 확인해주세요";
             log.error("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
         }
@@ -304,19 +300,21 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             //최대 할부개월수체크
             ResultMessage3 = validationService.payInstallmentValidation(payDto);
 
+            validationService.setCommission(payDto);
+
             if (!ResultMessage1.equals("")){
-                ResultCode = "9000";
+                ResultCode = ResultCodeEnum.NETWORK_CANCEL.code();
                 ResultMessage = ResultMessage1;
             } else if (!ResultMessage2.equals("")){
-                ResultCode = "9000";
+                ResultCode = ResultCodeEnum.NETWORK_CANCEL.code();
                 ResultMessage = ResultMessage2;
             } else if (!ResultMessage3.equals("")){
-                ResultCode = "9000";
+                ResultCode = ResultCodeEnum.NETWORK_CANCEL.code();
                 ResultMessage = ResultMessage3;
             }
 
         } catch(NullPointerException e){
-            ResultCode = "9000";
+            ResultCode = ResultCodeEnum.NETWORK_CANCEL.code();
             ResultMessage = "정상적으로 결제가 완료되지 않았습니다.";
             log.error("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
         }
@@ -328,8 +326,9 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
 
         payDto.setApprovalCode(ResultCode);
         payDto.setApprovalMsg(ResultMessage);
-
-        if(ResultCode=="0000") {
+        
+        //정상결제인 경우 
+        if(ResultCode==ResultCodeEnum.NORMAL_RESULT.code()) {
             ResultMessage= "정상승인이 완료되었습니다.";
             log.debug("인증결제성공({}) 결제결과 = code: {} msg: {}",payDto.getTranSeq(),ResultCode,ResultMessage);
 
@@ -340,16 +339,18 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             //승인정보 tb_tran_cardpg 저장
             mybatisServiceImpl.addTransactionCardPg(payDto);
 
-        } else if(ResultCode=="9000") {
+        } else if(ResultCode==ResultCodeEnum.NETWORK_CANCEL.code()) {
+        //망상취소결제인 경우
             log.debug("인증결제({}) PG내부오류 = code: {} msg: {}",payDto.getTranSeq(),ResultCode,ResultMessage);
         } else {
+        //결제실패인 경우
             log.debug("인증결제실패({}) 결제결과 = code: {} msg: {}",payDto.getTranSeq(),ResultCode,ResultMessage);
             //승인정보 tb_transaction_error 저장(승인실패시)
             mybatisServiceImpl.addTransactionError(payDto);
         }
 
         /**
-         * 기본 response처리
+         * response처리
          **/
         PaymentResponse response = PaymentResponse.newBuilder()
                 .setResultCode(ResultCode)

@@ -109,6 +109,8 @@ public class PayDto {
     private String dpstStatus;
     private String stlmStatus;
     private String pgTidVat;
+    private String pgTidPayAmt;
+    private String pgTidCommision;
 
 
 }

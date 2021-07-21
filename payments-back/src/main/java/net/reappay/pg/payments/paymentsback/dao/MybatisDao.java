@@ -91,4 +91,7 @@ public interface MybatisDao {
      */
     void addTransactionCardPg(PayDto payDto) throws DataAccessException;
 
+    PgTidCommission findCommissionByPgTid(PayDto payDto) throws DataAccessException;
+
+
 }

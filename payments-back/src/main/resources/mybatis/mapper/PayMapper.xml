@@ -280,7 +280,9 @@
             pg_merch_no,                        /* PG 가맹점번호 */
             ins_user,                            /* 등록아이디 */
             dpst_status,
-            stlm_status
+            stlm_status,
+            stlm_amt,
+            stlm_fee
         )
         VALUES
         (
@@ -293,7 +295,9 @@
             #{pgMerchNo},
             #{userSeq},
             #{dpstStatus},
-            #{stlmStatus}
+            #{stlmStatus},
+            #{pgTidPayAmt},
+            #{pgTidCommision}
         )
     </insert>
 
@@ -415,7 +419,6 @@
         , TRAN_STATUS
         , RESULT_STATUS
         , TRAN_STEP
-        , PG_TID_VAT
         , CLIENT_IP
 
         , MEMB_USER_NO
@@ -431,6 +434,9 @@
         , INS_USER
         , PG_MERCH_NO
         , PG_MERCH_ADJ_CHK
+        , pg_tid_commision
+        , pg_tid_pay_amt
+        , pg_tid_vat
         )
         VALUES
         (
@@ -466,7 +472,6 @@
         , #{tranStatus}
         , #{resultStatus}
         , #{tranStep}
-        , #{vatAmt}
         , #{ipAddr}
 
         , #{userSeq}
@@ -482,6 +487,9 @@
         , #{userSeq}
         , #{pgMerchNo}
         , 'N'
+        , #{pgTidCommision}
+        , #{pgTidPayAmt}
+        , #{pgTidVat}
         )
     </insert>
 
@@ -504,6 +512,28 @@
         SELECT INSTALLMENT_MONTH
         FROM TB_PG_MST
         WHERE PG_MERCH_NO = #{pgMerchNo}
+    </select>
+
+    <select id="findCommissionByPgTid" parameterType="payDto" resultType="pgTidCommission">
+        SELECT PG_TID_CMS_SEQ
+        , PG_TID
+        , COMMISSION
+        , START_DT
+        , END_DT
+        FROM TB_PG_TID_COMMISSION
+        WHERE PG_TID   = #{pgTid}
+        AND DEL_FLAG = 'N'
+        AND USE_FLAG = 'Y'
+        <choose>
+            <when test="tradeDate == null or tradeDate == ''">
+                AND START_DT <![CDATA[<=]]> DATE_FORMAT(NOW(),'%Y%M%D')
+                AND END_DT   <![CDATA[>=]]> DATE_FORMAT(NOW(),'%Y%M%D')
+            </when>
+            <otherwise>
+                AND START_DT <![CDATA[<=]]> #{tradeDate}
+                AND END_DT   <![CDATA[>=]]> #{tradeDate}
+            </otherwise>
+        </choose>
     </select>
 
 </mapper>

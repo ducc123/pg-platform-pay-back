@@ -1,0 +1,41 @@
+grpc:
+  server:
+    port: 8182
+
+spring:
+  datasource:
+    url: jdbc:mariadb://10.200.10.22:3306/reappg
+    driver-class-name: org.mariadb.jdbc.Driver
+    username: reappg
+    password: flqvlwl+12@#
+
+mybatis:
+  type-aliases-package: net.reappay.pg.*
+  config-location: classpath:mybatis/mybatis-config.xml
+  mapper-locations: classpath:mybatis/mapper/*Mapper.xml
+
+logging:
+  file:
+    path: /home/reappg/platform/logs/pay-front
+    name: ${logging.file.path}/pay-back.log
+  logback:
+    rollingpolicy:
+      max-history: 14
+  level:
+    jdbc:
+      sqlonly: debug
+      sqltiming: debug
+      resultsettable: debug
+      audit: debug
+      resultset: off
+    net.reappay.pg: debug
+    org.apache.ibatis: debug
+    org.mybatis: debug
+    ksnet: debug
+  pattern:
+    dateformat: yyyy-MM-dd HH:mm:ss.SSS,Asia/Seoul
+
+cors:
+  allowed-origins: "*"
+  exposed-headers: X-Refresh-Token
+  max-age: 1800

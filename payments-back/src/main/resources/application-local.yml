@@ -17,7 +17,7 @@ mybatis:
 logging:
   file:
     path: /home/reappg/platform/logs/pay-front
-    name: ${logging.file.path}/pay-front.log
+    name: ${logging.file.path}/pay-back.log
   logback:
     rollingpolicy:
       max-history: 14
@@ -34,3 +34,8 @@ logging:
     ksnet: debug
   pattern:
     dateformat: yyyy-MM-dd HH:mm:ss.SSS,Asia/Seoul
+
+cors:
+  allowed-origins: "*"
+  exposed-headers: X-Refresh-Token
+  max-age: 1800

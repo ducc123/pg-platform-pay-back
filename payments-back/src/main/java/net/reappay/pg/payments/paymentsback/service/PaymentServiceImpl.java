@@ -33,7 +33,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
     private final MybatisServiceImpl mybatisServiceImpl;
 
     //주문처리 서비스@20210719
-    @Transactional
+    @Transactional(rollbackFor = {RuntimeException.class, Exception.class})
     @Override
     public void orderCall(OrderRequest request, StreamObserver<OrderResponse> responseObserver) {
 
@@ -172,7 +172,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
     }
 
     //승인처리 서비스
-    @Transactional
+    @Transactional(rollbackFor = {RuntimeException.class, Exception.class})
     @Override
     public void paymentCall(PaymentRequest request, StreamObserver<PaymentResponse> responseObserver) {
 
@@ -290,20 +290,20 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             //최대 할부개월수체크
             ResultMessage3 = this.payInstallmentValidation(payDto);
 
+            if (ResultMessage1!=""){
+                ResultCode = "9000";
+                ResultMessage = ResultMessage1;
+            } else if (ResultMessage2!=""){
+                ResultCode = "9000";
+                ResultMessage = ResultMessage2;
+            } else if (ResultMessage3!=""){
+                ResultCode = "9000";
+                ResultMessage = ResultMessage3;
+            }
+
         } catch(NullPointerException e){
             ResultCode = "9000";
             ResultMessage = "정상적으로 결제가 완료되지 않았습니다.";
-        }
-
-        if (ResultMessage1!=""){
-            ResultCode = "9000";
-            ResultMessage = ResultMessage1;
-        } else if (ResultMessage2!=""){
-            ResultCode = "9000";
-            ResultMessage = ResultMessage2;
-         } else if (ResultMessage3!=""){
-            ResultCode = "9000";
-            ResultMessage = ResultMessage3;
         }
 
         /**
@@ -322,6 +322,8 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             mybatisServiceImpl.addTransaction(payDto);
             //승인정보 tb_transaction_card 저장
             mybatisServiceImpl.addTransactionCard(payDto);
+            //승인정보 tb_tran_cardpg 저장
+            mybatisServiceImpl.addTransactionCardPg(payDto);
 
         } else if(ResultCode=="9000") {
             log.debug("인증결제({}) PG내부오류 = code: {} msg: {}",payDto.getTranSeq(),ResultCode,ResultMessage);

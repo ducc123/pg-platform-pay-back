@@ -62,6 +62,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             //결과코드 , 메시지 설정
             orderDto.setResultCode(ResultCode);
             orderDto.setResultMessage(ResultMessage);
+            log.debug("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
         } else if (orderDto.getGoodsName().isEmpty()){
             ResultCode       = "9999";
             ResultMessage    = "상품명을 확인해주세요.";
@@ -69,6 +70,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             //결과코드 , 메시지 설정
             orderDto.setResultCode(ResultCode);
             orderDto.setResultMessage(ResultMessage);
+            log.debug("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
         } else if (orderDto.getTotAmt().toString().isEmpty() || orderDto.getTotAmt()<100){
             ResultCode       = "9999";
             ResultMessage    = "결제금액을 확인해주세요.";
@@ -76,6 +78,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             //결과코드 , 메시지 설정
             orderDto.setResultCode(ResultCode);
             orderDto.setResultMessage(ResultMessage);
+            log.debug("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
         } else if (orderDto.getOrderSeq().length()==0){
             ResultCode       = "9999";
             ResultMessage    = "주문번호를 확인해주세요.";
@@ -83,6 +86,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             //결과코드 , 메시지 설정
             orderDto.setResultCode(ResultCode);
             orderDto.setResultMessage(ResultMessage);
+            log.debug("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
         } else if (orderDto.getOrderSeq().isEmpty()){
             ResultCode       = "9999";
             ResultMessage    = "주문번호를 확인해주세요.";
@@ -90,6 +94,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             //결과코드 , 메시지 설정
             orderDto.setResultCode(ResultCode);
             orderDto.setResultMessage(ResultMessage);
+            log.debug("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
         } else {
 
             //transeq 생성해서 저장
@@ -132,6 +137,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             } catch (NullPointerException e) {
                 ResultCode = "9999";
                 ResultMessage = "정상적인 회원정보가 아닙니다";
+                log.error("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
             }
 
             //클라이언트 아이피정보 설정
@@ -142,6 +148,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             } catch (UnknownHostException e) {
                 ResultCode = "9999";
                 ResultMessage = "error : " + e.getMessage();
+                log.debug("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
             }
 
             //가맹점 주문정보 tb_approval 저장
@@ -169,6 +176,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
             String timestr1 = sdf12.format(cal2.getTime());
             log.debug("###인증결제 주문처리끝 ({} {})", datestr1, timestr1);
         }
+
     }
 
     //승인처리 서비스
@@ -199,6 +207,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         if (tranSeqCount>0) {
             ResultCode = "9000";
             ResultMessage = "이미 결제된 거래입니다.";
+            log.debug("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
         }
 
         payDto.setTradeDate(datestr.replace("-","").replace(" ",""));
@@ -258,6 +267,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         } catch (UnknownHostException e) {
             ResultCode = "9000";
             ResultMessage = "error : "+e.getMessage();
+            log.error("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
         }
         payDto.setIpAddr(cip);
 
@@ -274,6 +284,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         } catch(NullPointerException e){
             ResultCode = "9000";
             ResultMessage = "회원정보를 확인해주세요";
+            log.error("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
         }
 
         /**
@@ -304,6 +315,7 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         } catch(NullPointerException e){
             ResultCode = "9000";
             ResultMessage = "정상적으로 결제가 완료되지 않았습니다.";
+            log.error("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
         }
 
         /**
@@ -368,7 +380,8 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
     @Transactional
     public String setAmt(PayDto payDto){
 
-        String ResultMessage = "";
+        String ResultCode   = "";
+        String ResultMessage= "";
 
         BigDecimal totBd    = payDto.getTotAmt();
         BigDecimal vatBd    = totBd.divide(new BigDecimal("11"), 0, RoundingMode.DOWN);
@@ -381,8 +394,9 @@ public class PaymentServiceImpl extends PaymentServiceGrpc.PaymentServiceImplBas
         payDto.setSplAmt(splAmt);               // 공급가액
 
         if (payDto.getTotAmt().intValue() <= 0 || payDto.getTotAmt().intValue() != (splAmt.intValue() + vatBd.intValue())) {
-            String ResultCode = "3001";
+            ResultCode = "3001";
             ResultMessage = "결제금액을 입력해주세요";
+            log.debug("ResultCode : {} , ResultMessage : {}",ResultCode,ResultMessage);
         }
 
         return ResultMessage;
